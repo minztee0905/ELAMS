@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OffboardingAsIs" targetNamespace="https://elams.example/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0">
+  <bpmn:message id="Message_DateChange" name="Thông báo thay đổi ngày nghỉ việc" />
+  <bpmn:message id="Message_Urgent" name="Thông báo nghỉ việc đột xuất" />
+  <bpmn:message id="Message_Reply" name="Phản hồi đã xử lý việc còn thiếu" />
+  <bpmn:collaboration id="Collaboration_OffboardingAsIs">
+    <bpmn:participant id="Pool_TechNova" name="TechNova – Employee Offboarding (As-Is)" processRef="Process_OffboardingAsIs" />
+    <bpmn:textAnnotation id="Note_Tracking">
+      <bpmn:text>Hiện trạng: mỗi bộ phận tự theo dõi nhánh của mình; HR phải đối chiếu email, Excel và biên bản để biết đã đủ điều kiện hay chưa (PP-12, PP-15).</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Note_Device">
+      <bpmn:text>Thiết bị chưa hoàn trả chỉ được nhắc qua trao đổi thủ công; chưa có cơ chế ghi nhận ngoại lệ thống nhất (PP-13).</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_OffboardingAsIs" name="Employee Offboarding – As-Is" isExecutable="false">
+    <bpmn:documentation>As-Is Offboarding (AS-03), bản rút gọn ngày 21/11/2026. Chỉ mô tả hiện trạng thủ công: ba nhánh bàn giao công việc, thu hồi quyền và thu hồi thiết bị chạy song song; HR đối chiếu thủ công trước khi xác nhận hoàn tất. Các kiểm soát mới (phê duyệt ngoại lệ, bằng chứng, xác minh thu hồi) thuộc To-Be theo GAP-OFF-04, GAP-OFF-05. Quy trình giả lập, chưa được xác minh với doanh nghiệp thực tế.</bpmn:documentation>
+    <bpmn:laneSet id="Lane_HR_Set">
+      <bpmn:lane id="Lane_HR" name="HR">
+        <bpmn:flowNodeRef>OFF_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T03</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Split</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T17</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G04</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T18</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E_Reply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T19</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>OFF_End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_DateChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Urgent</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Manager" name="Manager">
+        <bpmn:flowNodeRef>T04</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T06</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T07</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Employee" name="Employee">
+        <bpmn:flowNodeRef>T12</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T05</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_IT" name="IT">
+        <bpmn:flowNodeRef>T13</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G03</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T14</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T16</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T08</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T09</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T10</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T11</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="OFF_Start" name="Đã xác nhận thông tin nghỉ việc">
+      <bpmn:outgoing>Flow_OFF_Start_T01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="T01" name="Tiếp nhận thông tin nghỉ việc">
+      <bpmn:incoming>Flow_OFF_Start_T01</bpmn:incoming>
+      <bpmn:outgoing>Flow_T01_T02</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T02" name="Ghi nhận thông tin vào Excel">
+      <bpmn:incoming>Flow_T01_T02</bpmn:incoming>
+      <bpmn:outgoing>Flow_T02_T03</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T03" name="Gửi email thông báo cho Manager và IT">
+      <bpmn:incoming>Flow_T02_T03</bpmn:incoming>
+      <bpmn:outgoing>Flow_T03_AND_Split</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="AND_Split" name="Ba nhánh xử lý độc lập">
+      <bpmn:incoming>Flow_T03_AND_Split</bpmn:incoming>
+      <bpmn:outgoing>Flow_AND_Split_T04</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AND_Split_T12</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AND_Split_T08</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="T04" name="Lập kế hoạch bàn giao công việc">
+      <bpmn:incoming>Flow_AND_Split_T04</bpmn:incoming>
+      <bpmn:outgoing>Flow_T04_T05</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T06" name="Kiểm tra bàn giao công việc">
+      <bpmn:incoming>Flow_T05_T06</bpmn:incoming>
+      <bpmn:outgoing>Flow_T06_G01</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="G01" name="Bàn giao đầy đủ?">
+      <bpmn:incoming>Flow_T06_G01</bpmn:incoming>
+      <bpmn:outgoing>Flow_G01_T07</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G01_T05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T07" name="Báo kết quả bàn giao cho HR qua email">
+      <bpmn:incoming>Flow_G01_T07</bpmn:incoming>
+      <bpmn:outgoing>Flow_T07_AND_Join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T13" name="Kiểm tra thiết bị và ghi nhận thu hồi">
+      <bpmn:incoming>Flow_T12_T13</bpmn:incoming>
+      <bpmn:outgoing>Flow_T13_G03</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="G03" name="Đã thu hồi đủ thiết bị?">
+      <bpmn:incoming>Flow_T13_G03</bpmn:incoming>
+      <bpmn:outgoing>Flow_G03_T16</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G03_T14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T14" name="Nhắc nhân viên hoàn trả; báo HR và Manager">
+      <bpmn:incoming>Flow_G03_T14</bpmn:incoming>
+      <bpmn:outgoing>Flow_T14_T12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T16" name="Báo kết quả thu hồi thiết bị cho HR">
+      <bpmn:incoming>Flow_G03_T16</bpmn:incoming>
+      <bpmn:outgoing>Flow_T16_AND_Join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T08" name="Xác định tài khoản và quyền cần thu hồi">
+      <bpmn:incoming>Flow_AND_Split_T08</bpmn:incoming>
+      <bpmn:outgoing>Flow_T08_T09</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T09" name="Thu hồi hoặc vô hiệu hóa quyền truy cập">
+      <bpmn:incoming>Flow_T08_T09</bpmn:incoming>
+      <bpmn:incoming>Flow_T10_T09</bpmn:incoming>
+      <bpmn:outgoing>Flow_T09_G02</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="G02" name="Thu hồi thành công?">
+      <bpmn:incoming>Flow_T09_G02</bpmn:incoming>
+      <bpmn:outgoing>Flow_G02_T11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G02_T10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T10" name="Ghi nhận lỗi và xử lý sự cố thu hồi">
+      <bpmn:incoming>Flow_G02_T10</bpmn:incoming>
+      <bpmn:outgoing>Flow_T10_T09</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T11" name="Báo kết quả thu hồi quyền cho HR">
+      <bpmn:incoming>Flow_G02_T11</bpmn:incoming>
+      <bpmn:outgoing>Flow_T11_AND_Join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="AND_Join" name="Chờ đủ ba nhánh">
+      <bpmn:incoming>Flow_T07_AND_Join</bpmn:incoming>
+      <bpmn:incoming>Flow_T16_AND_Join</bpmn:incoming>
+      <bpmn:incoming>Flow_T11_AND_Join</bpmn:incoming>
+      <bpmn:outgoing>Flow_AND_Join_T17</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="T17" name="Đối chiếu email, Excel và biên bản bàn giao">
+      <bpmn:incoming>Flow_AND_Join_T17</bpmn:incoming>
+      <bpmn:incoming>Flow_E_Reply_T17</bpmn:incoming>
+      <bpmn:outgoing>Flow_T17_G04</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="G04" name="Đủ điều kiện hoàn tất?">
+      <bpmn:incoming>Flow_T17_G04</bpmn:incoming>
+      <bpmn:outgoing>Flow_G04_T19</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G04_T18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T18" name="Nhắc bộ phận xử lý việc còn thiếu">
+      <bpmn:incoming>Flow_G04_T18</bpmn:incoming>
+      <bpmn:outgoing>Flow_T18_E_Reply</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="E_Reply" name="Nhận phản hồi đã xử lý">
+      <bpmn:incoming>Flow_T18_E_Reply</bpmn:incoming>
+      <bpmn:outgoing>Flow_E_Reply_T17</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="E_Reply_Def" messageRef="Message_Reply" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="T19" name="Xác nhận hoàn tất offboarding">
+      <bpmn:incoming>Flow_G04_T19</bpmn:incoming>
+      <bpmn:outgoing>Flow_T19_OFF_End</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="OFF_End" name="Offboarding hoàn tất">
+      <bpmn:incoming>Flow_T19_OFF_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Sub_DateChange" name="Thay đổi ngày nghỉ việc" triggeredByEvent="true">
+      <bpmn:laneSet id="Date_Lane_HR_Set">
+        <bpmn:lane id="Date_Lane_HR" name="HR">
+          <bpmn:flowNodeRef>Date_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_Update</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_Split</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_Join</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Date_Lane_Manager" name="Manager">
+          <bpmn:flowNodeRef>Date_Manager</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Date_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>Date_IT</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="Date_Start" name="Nhận thông báo thay đổi ngày nghỉ việc" isInterrupting="false">
+        <bpmn:outgoing>Flow_Date_Start_Date_Update</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="Date_Start_Def" messageRef="Message_DateChange" />
+      </bpmn:startEvent>
+      <bpmn:task id="Date_Update" name="Cập nhật Excel và gửi email ngày mới cho Manager, IT">
+        <bpmn:incoming>Flow_Date_Start_Date_Update</bpmn:incoming>
+        <bpmn:outgoing>Flow_Date_Update_Date_Split</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:parallelGateway id="Date_Split" name="">
+        <bpmn:incoming>Flow_Date_Update_Date_Split</bpmn:incoming>
+        <bpmn:outgoing>Flow_Date_Split_Date_Manager</bpmn:outgoing>
+        <bpmn:outgoing>Flow_Date_Split_Date_IT</bpmn:outgoing>
+      </bpmn:parallelGateway>
+      <bpmn:task id="Date_Manager" name="Điều chỉnh kế hoạch bàn giao">
+        <bpmn:incoming>Flow_Date_Split_Date_Manager</bpmn:incoming>
+        <bpmn:outgoing>Flow_Date_Manager_Date_Join</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Date_IT" name="Điều chỉnh kế hoạch thu hồi quyền và thiết bị">
+        <bpmn:incoming>Flow_Date_Split_Date_IT</bpmn:incoming>
+        <bpmn:outgoing>Flow_Date_IT_Date_Join</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:parallelGateway id="Date_Join" name="">
+        <bpmn:incoming>Flow_Date_Manager_Date_Join</bpmn:incoming>
+        <bpmn:incoming>Flow_Date_IT_Date_Join</bpmn:incoming>
+        <bpmn:outgoing>Flow_Date_Join_Date_End</bpmn:outgoing>
+      </bpmn:parallelGateway>
+      <bpmn:endEvent id="Date_End" name="Đã cập nhật kế hoạch">
+        <bpmn:incoming>Flow_Date_Join_Date_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_Date_Start_Date_Update" sourceRef="Date_Start" targetRef="Date_Update" />
+      <bpmn:sequenceFlow id="Flow_Date_Update_Date_Split" sourceRef="Date_Update" targetRef="Date_Split" />
+      <bpmn:sequenceFlow id="Flow_Date_Split_Date_Manager" sourceRef="Date_Split" targetRef="Date_Manager" />
+      <bpmn:sequenceFlow id="Flow_Date_Split_Date_IT" sourceRef="Date_Split" targetRef="Date_IT" />
+      <bpmn:sequenceFlow id="Flow_Date_Manager_Date_Join" sourceRef="Date_Manager" targetRef="Date_Join" />
+      <bpmn:sequenceFlow id="Flow_Date_IT_Date_Join" sourceRef="Date_IT" targetRef="Date_Join" />
+      <bpmn:sequenceFlow id="Flow_Date_Join_Date_End" sourceRef="Date_Join" targetRef="Date_End" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Sub_Urgent" name="Nghỉ việc đột xuất" triggeredByEvent="true">
+      <bpmn:laneSet id="Urgent_Lane_HR_Set">
+        <bpmn:lane id="Urgent_Lane_HR" name="HR">
+          <bpmn:flowNodeRef>Urgent_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Urgent_Notify</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Urgent_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>Urgent_Revoke</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Urgent_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="Urgent_Start" name="Nhận thông báo nghỉ việc đột xuất" isInterrupting="false">
+        <bpmn:outgoing>Flow_Urgent_Start_Urgent_Notify</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="Urgent_Start_Def" messageRef="Message_Urgent" />
+      </bpmn:startEvent>
+      <bpmn:task id="Urgent_Notify" name="Thông báo khẩn cho IT và Manager">
+        <bpmn:incoming>Flow_Urgent_Start_Urgent_Notify</bpmn:incoming>
+        <bpmn:outgoing>Flow_Urgent_Notify_Urgent_Revoke</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Urgent_Revoke" name="Ưu tiên thu hồi quyền truy cập ngay">
+        <bpmn:incoming>Flow_Urgent_Notify_Urgent_Revoke</bpmn:incoming>
+        <bpmn:outgoing>Flow_Urgent_Revoke_Urgent_End</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Urgent_End" name="Đã ưu tiên thu hồi quyền">
+        <bpmn:incoming>Flow_Urgent_Revoke_Urgent_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_Urgent_Start_Urgent_Notify" sourceRef="Urgent_Start" targetRef="Urgent_Notify" />
+      <bpmn:sequenceFlow id="Flow_Urgent_Notify_Urgent_Revoke" sourceRef="Urgent_Notify" targetRef="Urgent_Revoke" />
+      <bpmn:sequenceFlow id="Flow_Urgent_Revoke_Urgent_End" sourceRef="Urgent_Revoke" targetRef="Urgent_End" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_OFF_Start_T01" sourceRef="OFF_Start" targetRef="T01" />
+    <bpmn:sequenceFlow id="Flow_T01_T02" sourceRef="T01" targetRef="T02" />
+    <bpmn:sequenceFlow id="Flow_T02_T03" sourceRef="T02" targetRef="T03" />
+    <bpmn:sequenceFlow id="Flow_T03_AND_Split" sourceRef="T03" targetRef="AND_Split" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_T04" sourceRef="AND_Split" targetRef="T04" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_T12" sourceRef="AND_Split" targetRef="T12" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_T08" sourceRef="AND_Split" targetRef="T08" />
+    <bpmn:sequenceFlow id="Flow_T04_T05" sourceRef="T04" targetRef="T05" />
+    <bpmn:sequenceFlow id="Flow_T05_T06" sourceRef="T05" targetRef="T06" />
+    <bpmn:sequenceFlow id="Flow_T06_G01" sourceRef="T06" targetRef="G01" />
+    <bpmn:sequenceFlow id="Flow_T13_G03" sourceRef="T13" targetRef="G03" />
+    <bpmn:sequenceFlow id="Flow_T08_T09" sourceRef="T08" targetRef="T09" />
+    <bpmn:sequenceFlow id="Flow_T09_G02" sourceRef="T09" targetRef="G02" />
+    <bpmn:sequenceFlow id="Flow_T07_AND_Join" sourceRef="T07" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_T16_AND_Join" sourceRef="T16" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_T11_AND_Join" sourceRef="T11" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_AND_Join_T17" sourceRef="AND_Join" targetRef="T17" />
+    <bpmn:sequenceFlow id="Flow_T17_G04" sourceRef="T17" targetRef="G04" />
+    <bpmn:sequenceFlow id="Flow_T19_OFF_End" sourceRef="T19" targetRef="OFF_End" />
+    <bpmn:sequenceFlow id="Flow_G01_T07" name="Có" sourceRef="G01" targetRef="T07" />
+    <bpmn:sequenceFlow id="Flow_G01_T05" name="Không" sourceRef="G01" targetRef="T05" />
+    <bpmn:sequenceFlow id="Flow_T12_T13" sourceRef="T12" targetRef="T13" />
+    <bpmn:sequenceFlow id="Flow_G03_T16" name="Có" sourceRef="G03" targetRef="T16" />
+    <bpmn:sequenceFlow id="Flow_G03_T14" name="Không" sourceRef="G03" targetRef="T14" />
+    <bpmn:sequenceFlow id="Flow_T14_T12" sourceRef="T14" targetRef="T12" />
+    <bpmn:sequenceFlow id="Flow_G02_T11" name="Có" sourceRef="G02" targetRef="T11" />
+    <bpmn:sequenceFlow id="Flow_G02_T10" name="Không" sourceRef="G02" targetRef="T10" />
+    <bpmn:sequenceFlow id="Flow_T10_T09" sourceRef="T10" targetRef="T09" />
+    <bpmn:sequenceFlow id="Flow_G04_T19" name="Có" sourceRef="G04" targetRef="T19" />
+    <bpmn:sequenceFlow id="Flow_G04_T18" name="Không" sourceRef="G04" targetRef="T18" />
+    <bpmn:sequenceFlow id="Flow_T18_E_Reply" sourceRef="T18" targetRef="E_Reply" />
+    <bpmn:sequenceFlow id="Flow_E_Reply_T17" sourceRef="E_Reply" targetRef="T17" />
+    <bpmn:task id="T12" name="Hoàn trả thiết bị">
+      <bpmn:incoming>Flow_AND_Split_T12</bpmn:incoming>
+      <bpmn:incoming>Flow_T14_T12</bpmn:incoming>
+      <bpmn:outgoing>Flow_T12_T13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="T05" name="Bàn giao công việc">
+      <bpmn:incoming>Flow_T04_T05</bpmn:incoming>
+      <bpmn:incoming>Flow_G01_T05</bpmn:incoming>
+      <bpmn:outgoing>Flow_T05_T06</bpmn:outgoing>
+    </bpmn:task>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Process_OffboardingAsIs_Diagram">
+    <bpmndi:BPMNPlane id="Process_OffboardingAsIs_Plane" bpmnElement="Collaboration_OffboardingAsIs">
+      <bpmndi:BPMNShape id="Pool_TechNova_di" bpmnElement="Pool_TechNova" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="2380" height="1040" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_IT_di" bpmnElement="Lane_IT" isHorizontal="true">
+        <dc:Bounds x="180" y="600" width="2350" height="520" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Employee_di" bpmnElement="Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="180" y="470" width="2350" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Manager_di" bpmnElement="Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="180" y="340" width="2350" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_HR_di" bpmnElement="Lane_HR" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="2350" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="OFF_Start_di" bpmnElement="OFF_Start">
+        <dc:Bounds x="262" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T01_di" bpmnElement="T01">
+        <dc:Bounds x="380" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T02_di" bpmnElement="T02">
+        <dc:Bounds x="530" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T03_di" bpmnElement="T03">
+        <dc:Bounds x="680" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Split_di" bpmnElement="AND_Split">
+        <dc:Bounds x="855" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="820" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T04_di" bpmnElement="T04">
+        <dc:Bounds x="980" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T06_di" bpmnElement="T06">
+        <dc:Bounds x="1280" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G01_di" bpmnElement="G01" isMarkerVisible="true">
+        <dc:Bounds x="1455" y="380" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1420" y="346" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T07_di" bpmnElement="T07">
+        <dc:Bounds x="1580" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T13_di" bpmnElement="T13">
+        <dc:Bounds x="1130" y="625" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G03_di" bpmnElement="G03" isMarkerVisible="true">
+        <dc:Bounds x="1305" y="640" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1352" y="613" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T14_di" bpmnElement="T14">
+        <dc:Bounds x="1280" y="755" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T16_di" bpmnElement="T16">
+        <dc:Bounds x="1580" y="625" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T08_di" bpmnElement="T08">
+        <dc:Bounds x="980" y="885" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T09_di" bpmnElement="T09">
+        <dc:Bounds x="1130" y="885" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G02_di" bpmnElement="G02" isMarkerVisible="true">
+        <dc:Bounds x="1305" y="900" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1270" y="873" width="120" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T10_di" bpmnElement="T10">
+        <dc:Bounds x="1280" y="1015" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T11_di" bpmnElement="T11">
+        <dc:Bounds x="1580" y="885" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Join_di" bpmnElement="AND_Join">
+        <dc:Bounds x="1755" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1720" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T17_di" bpmnElement="T17">
+        <dc:Bounds x="1880" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G04_di" bpmnElement="G04" isMarkerVisible="true">
+        <dc:Bounds x="2055" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2020" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T18_di" bpmnElement="T18">
+        <dc:Bounds x="2030" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E_Reply_di" bpmnElement="E_Reply">
+        <dc:Bounds x="1912" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1875" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T19_di" bpmnElement="T19">
+        <dc:Bounds x="2180" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="OFF_End_di" bpmnElement="OFF_End">
+        <dc:Bounds x="2362" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2325" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T12_di" bpmnElement="T12">
+        <dc:Bounds x="980" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T05_di" bpmnElement="T05">
+        <dc:Bounds x="1130" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_DateChange_di" bpmnElement="Sub_DateChange" isExpanded="false">
+        <dc:Bounds x="380" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Urgent_di" bpmnElement="Sub_Urgent" isExpanded="false">
+        <dc:Bounds x="530" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_OFF_Start_T01_di" bpmnElement="Flow_OFF_Start_T01">
+        <di:waypoint x="298" y="145" />
+        <di:waypoint x="380" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T01_T02_di" bpmnElement="Flow_T01_T02">
+        <di:waypoint x="480" y="145" />
+        <di:waypoint x="530" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T02_T03_di" bpmnElement="Flow_T02_T03">
+        <di:waypoint x="630" y="145" />
+        <di:waypoint x="680" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T03_AND_Split_di" bpmnElement="Flow_T03_AND_Split">
+        <di:waypoint x="780" y="145" />
+        <di:waypoint x="855" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_T04_di" bpmnElement="Flow_AND_Split_T04">
+        <di:waypoint x="880" y="170" />
+        <di:waypoint x="880" y="405" />
+        <di:waypoint x="980" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_T12_di" bpmnElement="Flow_AND_Split_T12">
+        <di:waypoint x="880" y="170" />
+        <di:waypoint x="880" y="520" />
+        <di:waypoint x="980" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_T08_di" bpmnElement="Flow_AND_Split_T08">
+        <di:waypoint x="880" y="170" />
+        <di:waypoint x="880" y="925" />
+        <di:waypoint x="980" y="925" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T04_T05_di" bpmnElement="Flow_T04_T05">
+        <di:waypoint x="1080" y="405" />
+        <di:waypoint x="1105" y="405" />
+        <di:waypoint x="1105" y="520" />
+        <di:waypoint x="1130" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T05_T06_di" bpmnElement="Flow_T05_T06">
+        <di:waypoint x="1230" y="520" />
+        <di:waypoint x="1255" y="520" />
+        <di:waypoint x="1255" y="405" />
+        <di:waypoint x="1280" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T06_G01_di" bpmnElement="Flow_T06_G01">
+        <di:waypoint x="1380" y="405" />
+        <di:waypoint x="1455" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T13_G03_di" bpmnElement="Flow_T13_G03">
+        <di:waypoint x="1230" y="665" />
+        <di:waypoint x="1305" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T08_T09_di" bpmnElement="Flow_T08_T09">
+        <di:waypoint x="1080" y="925" />
+        <di:waypoint x="1130" y="925" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T09_G02_di" bpmnElement="Flow_T09_G02">
+        <di:waypoint x="1230" y="925" />
+        <di:waypoint x="1305" y="925" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T07_AND_Join_di" bpmnElement="Flow_T07_AND_Join">
+        <di:waypoint x="1680" y="405" />
+        <di:waypoint x="1780" y="405" />
+        <di:waypoint x="1780" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T16_AND_Join_di" bpmnElement="Flow_T16_AND_Join">
+        <di:waypoint x="1680" y="665" />
+        <di:waypoint x="1780" y="665" />
+        <di:waypoint x="1780" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T11_AND_Join_di" bpmnElement="Flow_T11_AND_Join">
+        <di:waypoint x="1680" y="925" />
+        <di:waypoint x="1780" y="925" />
+        <di:waypoint x="1780" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Join_T17_di" bpmnElement="Flow_AND_Join_T17">
+        <di:waypoint x="1805" y="145" />
+        <di:waypoint x="1880" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T17_G04_di" bpmnElement="Flow_T17_G04">
+        <di:waypoint x="1980" y="145" />
+        <di:waypoint x="2055" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T19_OFF_End_di" bpmnElement="Flow_T19_OFF_End">
+        <di:waypoint x="2280" y="145" />
+        <di:waypoint x="2362" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G01_T07_di" bpmnElement="Flow_G01_T07">
+        <di:waypoint x="1505" y="405" />
+        <di:waypoint x="1580" y="405" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1513" y="385" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G01_T05_di" bpmnElement="Flow_G01_T05">
+        <di:waypoint x="1480" y="430" />
+        <di:waypoint x="1480" y="587" />
+        <di:waypoint x="1180" y="587" />
+        <di:waypoint x="1180" y="560" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1486" y="438" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T12_T13_di" bpmnElement="Flow_T12_T13">
+        <di:waypoint x="1050" y="560" />
+        <di:waypoint x="1050" y="665" />
+        <di:waypoint x="1130" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G03_T16_di" bpmnElement="Flow_G03_T16">
+        <di:waypoint x="1355" y="665" />
+        <di:waypoint x="1580" y="665" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1363" y="645" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G03_T14_di" bpmnElement="Flow_G03_T14">
+        <di:waypoint x="1330" y="690" />
+        <di:waypoint x="1330" y="755" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1336" y="698" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T14_T12_di" bpmnElement="Flow_T14_T12">
+        <di:waypoint x="1280" y="795" />
+        <di:waypoint x="1010" y="795" />
+        <di:waypoint x="1010" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G02_T11_di" bpmnElement="Flow_G02_T11">
+        <di:waypoint x="1355" y="925" />
+        <di:waypoint x="1580" y="925" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1363" y="905" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G02_T10_di" bpmnElement="Flow_G02_T10">
+        <di:waypoint x="1330" y="950" />
+        <di:waypoint x="1330" y="1015" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1336" y="958" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T10_T09_di" bpmnElement="Flow_T10_T09">
+        <di:waypoint x="1280" y="1055" />
+        <di:waypoint x="1180" y="1055" />
+        <di:waypoint x="1180" y="965" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G04_T19_di" bpmnElement="Flow_G04_T19">
+        <di:waypoint x="2105" y="145" />
+        <di:waypoint x="2180" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2113" y="125" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G04_T18_di" bpmnElement="Flow_G04_T18">
+        <di:waypoint x="2080" y="170" />
+        <di:waypoint x="2080" y="235" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2086" y="178" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T18_E_Reply_di" bpmnElement="Flow_T18_E_Reply">
+        <di:waypoint x="2030" y="275" />
+        <di:waypoint x="1948" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_E_Reply_T17_di" bpmnElement="Flow_E_Reply_T17">
+        <di:waypoint x="1930" y="257" />
+        <di:waypoint x="1930" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Note_Tracking_di" bpmnElement="Note_Tracking">
+        <dc:Bounds x="910" y="235" width="320" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Device_di" bpmnElement="Note_Device">
+        <dc:Bounds x="1440" y="760" width="230" height="70" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_DateChange_Diagram">
+    <bpmndi:BPMNPlane id="Sub_DateChange_Plane" bpmnElement="Sub_DateChange">
+      <bpmndi:BPMNShape id="Date_Lane_IT_di" bpmnElement="Date_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="150" y="340" width="1000" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Lane_Manager_di" bpmnElement="Date_Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="150" y="210" width="1000" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Lane_HR_di" bpmnElement="Date_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1000" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Start_di" bpmnElement="Date_Start">
+        <dc:Bounds x="232" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Update_di" bpmnElement="Date_Update">
+        <dc:Bounds x="350" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Split_di" bpmnElement="Date_Split">
+        <dc:Bounds x="525" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Manager_di" bpmnElement="Date_Manager">
+        <dc:Bounds x="650" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_IT_di" bpmnElement="Date_IT">
+        <dc:Bounds x="650" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Join_di" bpmnElement="Date_Join">
+        <dc:Bounds x="825" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="790" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_End_di" bpmnElement="Date_End">
+        <dc:Bounds x="982" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="945" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Date_Start_Date_Update_di" bpmnElement="Flow_Date_Start_Date_Update">
+        <di:waypoint x="268" y="145" />
+        <di:waypoint x="350" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_Update_Date_Split_di" bpmnElement="Flow_Date_Update_Date_Split">
+        <di:waypoint x="450" y="145" />
+        <di:waypoint x="525" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_Split_Date_Manager_di" bpmnElement="Flow_Date_Split_Date_Manager">
+        <di:waypoint x="550" y="170" />
+        <di:waypoint x="550" y="275" />
+        <di:waypoint x="650" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_Split_Date_IT_di" bpmnElement="Flow_Date_Split_Date_IT">
+        <di:waypoint x="550" y="170" />
+        <di:waypoint x="550" y="405" />
+        <di:waypoint x="650" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_Manager_Date_Join_di" bpmnElement="Flow_Date_Manager_Date_Join">
+        <di:waypoint x="750" y="275" />
+        <di:waypoint x="850" y="275" />
+        <di:waypoint x="850" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_IT_Date_Join_di" bpmnElement="Flow_Date_IT_Date_Join">
+        <di:waypoint x="750" y="405" />
+        <di:waypoint x="850" y="405" />
+        <di:waypoint x="850" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Date_Join_Date_End_di" bpmnElement="Flow_Date_Join_Date_End">
+        <di:waypoint x="875" y="145" />
+        <di:waypoint x="982" y="145" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Urgent_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Urgent_Plane" bpmnElement="Sub_Urgent">
+      <bpmndi:BPMNShape id="Urgent_Lane_IT_di" bpmnElement="Urgent_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="150" y="210" width="700" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Urgent_Lane_HR_di" bpmnElement="Urgent_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="700" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Urgent_Start_di" bpmnElement="Urgent_Start">
+        <dc:Bounds x="232" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Urgent_Notify_di" bpmnElement="Urgent_Notify">
+        <dc:Bounds x="350" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Urgent_Revoke_di" bpmnElement="Urgent_Revoke">
+        <dc:Bounds x="500" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Urgent_End_di" bpmnElement="Urgent_End">
+        <dc:Bounds x="682" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="645" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Urgent_Start_Urgent_Notify_di" bpmnElement="Flow_Urgent_Start_Urgent_Notify">
+        <di:waypoint x="268" y="145" />
+        <di:waypoint x="350" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Urgent_Notify_Urgent_Revoke_di" bpmnElement="Flow_Urgent_Notify_Urgent_Revoke">
+        <di:waypoint x="450" y="145" />
+        <di:waypoint x="475" y="145" />
+        <di:waypoint x="475" y="275" />
+        <di:waypoint x="500" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Urgent_Revoke_Urgent_End_di" bpmnElement="Flow_Urgent_Revoke_Urgent_End">
+        <di:waypoint x="600" y="275" />
+        <di:waypoint x="682" y="275" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

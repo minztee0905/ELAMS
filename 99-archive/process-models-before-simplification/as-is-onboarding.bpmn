@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1d40xb6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0">
+  <bpmn:message id="Message_DateChange" name="Thay đổi ngày bắt đầu làm việc" />
+  <bpmn:message id="Message_RevisedRequest" name="Nhu cầu cấp quyền đã điều chỉnh" />
+  <bpmn:message id="Message_DeviceAvailable" name="Thiết bị phù hợp đã sẵn sàng" />
+  <bpmn:message id="Message_WorkCorrected" name="Công việc còn thiếu đã được xử lý" />
+  <bpmn:collaboration id="Collaboration_0mk8wgt">
+    <bpmn:participant id="Participant_1qndlxx" name="TechNova - Onboarding As-Is" processRef="Process_1ptrx5n" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1ptrx5n" isExecutable="true">
+    <bpmn:documentation>Bản sửa nghiệp vụ theo AS-01 và AS-02. Quy trình giả lập cần BA xác nhận. Các task mô tả công việc thủ công; chưa cấu hình triển khai trên workflow engine. Khi quyền bị từ chối, yêu cầu cấp quyền hiện tại kết thúc; onboarding chưa được xác nhận hoàn tất và chờ nhu cầu điều chỉnh. Quy tắc hủy onboarding chưa xác định.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_0q4zf9t">
+      <bpmn:lane id="Lane_HR" name="HR">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1j7mmnt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1krgpl2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0xtrvt2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0biqdzz</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Pending</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_Revised</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0a0muk0</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Completed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Remind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0mlr8ye</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1h79lef</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SubProcess_DateChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_Corrected</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Manager" name="Department Manager">
+        <bpmn:flowNodeRef>Activity_1aus8ow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0z68448</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1uwuu4h</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1xjcm6p</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_FixApprovals</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_IT" name="IT Staff">
+        <bpmn:flowNodeRef>Activity_1t2f0ls</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_0j5z353</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_CheckApprovals</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Approvals</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1dotwsh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_CheckDevices</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Devices</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_07y5vsm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1thzcr4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_DeviceShortage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_DeviceReady</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Security" name="Security Approver">
+        <bpmn:flowNodeRef>Activity_1d5fvv1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_RequestMoreInfo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_RejectNotice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1p8zmtm</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_018" name="Từ chối" sourceRef="Gateway_1p8zmtm" targetRef="Activity_RejectNotice">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= securityDecision = "rejected"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_015" name="Cần bổ sung" sourceRef="Gateway_1p8zmtm" targetRef="Activity_RequestMoreInfo">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= securityDecision = "more_information"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_013" sourceRef="Activity_1d5fvv1" targetRef="Gateway_1p8zmtm" />
+    <bpmn:sequenceFlow id="Flow_039" sourceRef="Activity_0mlr8ye" targetRef="Event_1h79lef" />
+    <bpmn:sequenceFlow id="Flow_036" sourceRef="Activity_Remind" targetRef="Event_Corrected" />
+    <bpmn:sequenceFlow id="Flow_038" name="Có" sourceRef="Gateway_Completed" targetRef="Activity_0mlr8ye">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= mandatoryWorkComplete = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_035" name="Không" sourceRef="Gateway_Completed" targetRef="Activity_Remind">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= mandatoryWorkComplete = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_034" sourceRef="Activity_0a0muk0" targetRef="Gateway_Completed" />
+    <bpmn:sequenceFlow id="Flow_037" sourceRef="Event_Corrected" targetRef="Activity_0a0muk0" />
+    <bpmn:sequenceFlow id="Flow_033" sourceRef="Activity_1thzcr4" targetRef="Activity_0a0muk0" />
+    <bpmn:sequenceFlow id="Flow_032" sourceRef="Activity_07y5vsm" targetRef="Activity_1thzcr4" />
+    <bpmn:sequenceFlow id="Flow_029" name="Không" sourceRef="Gateway_Devices" targetRef="Activity_DeviceShortage">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= deviceAvailable = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_028" name="Có" sourceRef="Gateway_Devices" targetRef="Activity_07y5vsm">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= deviceAvailable = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_027" sourceRef="Activity_CheckDevices" targetRef="Gateway_Devices" />
+    <bpmn:sequenceFlow id="Flow_031" sourceRef="Event_DeviceReady" targetRef="Activity_CheckDevices" />
+    <bpmn:sequenceFlow id="Flow_026" sourceRef="Activity_1dotwsh" targetRef="Activity_CheckDevices" />
+    <bpmn:sequenceFlow id="Flow_025" name="Có" sourceRef="Gateway_Approvals" targetRef="Activity_1dotwsh">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approvalsValid = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_023" name="Không" sourceRef="Gateway_Approvals" targetRef="Activity_FixApprovals">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approvalsValid = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_022" sourceRef="Activity_CheckApprovals" targetRef="Gateway_Approvals" />
+    <bpmn:sequenceFlow id="Flow_014" name="Phê duyệt" sourceRef="Gateway_1p8zmtm" targetRef="Activity_CheckApprovals">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= securityDecision = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_020" sourceRef="Activity_Pending" targetRef="Event_Revised" />
+    <bpmn:sequenceFlow id="Flow_019" sourceRef="Activity_RejectNotice" targetRef="Activity_Pending" />
+    <bpmn:sequenceFlow id="Flow_017" sourceRef="Activity_1xjcm6p" targetRef="Activity_1d5fvv1" />
+    <bpmn:sequenceFlow id="Flow_016" sourceRef="Activity_RequestMoreInfo" targetRef="Activity_1xjcm6p" />
+    <bpmn:sequenceFlow id="Flow_012" name="Không" sourceRef="Gateway_1uwuu4h" targetRef="Activity_CheckApprovals">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= sensitiveAccess = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_011" name="Có" sourceRef="Gateway_1uwuu4h" targetRef="Activity_1d5fvv1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= sensitiveAccess = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_024" sourceRef="Activity_FixApprovals" targetRef="Gateway_1uwuu4h" />
+    <bpmn:sequenceFlow id="Flow_010" name="Có" sourceRef="Gateway_0j5z353" targetRef="Gateway_1uwuu4h">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= informationComplete = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_008" name="Không" sourceRef="Gateway_0j5z353" targetRef="Activity_0biqdzz">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= informationComplete = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_007" sourceRef="Activity_1t2f0ls" targetRef="Gateway_0j5z353" />
+    <bpmn:sequenceFlow id="Flow_009" sourceRef="Activity_0biqdzz" targetRef="Activity_1t2f0ls" />
+    <bpmn:sequenceFlow id="Flow_006" sourceRef="Activity_0z68448" targetRef="Activity_1t2f0ls" />
+    <bpmn:sequenceFlow id="Flow_005" sourceRef="Activity_1aus8ow" targetRef="Activity_0z68448" />
+    <bpmn:sequenceFlow id="Flow_021" sourceRef="Event_Revised" targetRef="Activity_1aus8ow" />
+    <bpmn:sequenceFlow id="Flow_004" sourceRef="Activity_0xtrvt2" targetRef="Activity_1aus8ow" />
+    <bpmn:sequenceFlow id="Flow_003" sourceRef="Activity_1krgpl2" targetRef="Activity_0xtrvt2" />
+    <bpmn:sequenceFlow id="Flow_002" sourceRef="Activity_1j7mmnt" targetRef="Activity_1krgpl2" />
+    <bpmn:sequenceFlow id="Flow_001" sourceRef="StartEvent_1" targetRef="Activity_1j7mmnt" />
+    <bpmn:subProcess id="SubProcess_DateChange" name="Ngoại lệ: thay đổi ngày bắt đầu làm việc" triggeredByEvent="true">
+      <bpmn:documentation>Phát sinh trong khi onboarding còn đang xử lý. HR nhận thay đổi, cập nhật Excel và thông báo; IT và Manager điều chỉnh kế hoạch thủ công. Không tự động tính SLA. Cần kiểm tra theo ngày cập nhật trước khi HR xác nhận hoàn tất.</bpmn:documentation>
+      <bpmn:laneSet id="LaneSet_DateChange">
+        <bpmn:lane id="Lane_Date_HR" name="HR">
+          <bpmn:flowNodeRef>Date_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_Update</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_Notify</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Lane_Date_IT" name="IT Staff">
+          <bpmn:flowNodeRef>Date_IT</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Lane_Date_Manager" name="Department Manager">
+          <bpmn:flowNodeRef>Date_Manager</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Date_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="Date_Start" name="Nhận thông báo đổi ngày" isInterrupting="false">
+        <bpmn:outgoing>Flow_040</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageDef_Date_Start" messageRef="Message_DateChange" />
+      </bpmn:startEvent>
+      <bpmn:task id="Date_Update" name="Cập nhật ngày bắt đầu trong Excel">
+        <bpmn:incoming>Flow_040</bpmn:incoming>
+        <bpmn:outgoing>Flow_041</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Date_Notify" name="Gửi email ngày mới cho IT và Manager">
+        <bpmn:incoming>Flow_041</bpmn:incoming>
+        <bpmn:outgoing>Flow_042</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Date_IT" name="Điều chỉnh kế hoạch tài khoản và thiết bị">
+        <bpmn:incoming>Flow_042</bpmn:incoming>
+        <bpmn:outgoing>Flow_043</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Date_Manager" name="Điều chỉnh kế hoạch tiếp nhận">
+        <bpmn:incoming>Flow_043</bpmn:incoming>
+        <bpmn:outgoing>Flow_044</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Date_End" name="Đã cập nhật kế hoạch">
+        <bpmn:incoming>Flow_044</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_040" sourceRef="Date_Start" targetRef="Date_Update" />
+      <bpmn:sequenceFlow id="Flow_041" sourceRef="Date_Update" targetRef="Date_Notify" />
+      <bpmn:sequenceFlow id="Flow_042" sourceRef="Date_Notify" targetRef="Date_IT" />
+      <bpmn:sequenceFlow id="Flow_043" sourceRef="Date_IT" targetRef="Date_Manager" />
+      <bpmn:sequenceFlow id="Flow_044" sourceRef="Date_Manager" targetRef="Date_End" />
+    </bpmn:subProcess>
+    <bpmn:exclusiveGateway id="Gateway_1p8zmtm" name="Kết quả xét duyệt Security?">
+      <bpmn:incoming>Flow_013</bpmn:incoming>
+      <bpmn:outgoing>Flow_014</bpmn:outgoing>
+      <bpmn:outgoing>Flow_015</bpmn:outgoing>
+      <bpmn:outgoing>Flow_018</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_RejectNotice" name="Thông báo từ chối và lý do; kết thúc yêu cầu cấp quyền">
+      <bpmn:incoming>Flow_018</bpmn:incoming>
+      <bpmn:outgoing>Flow_019</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_RequestMoreInfo" name="Yêu cầu Manager bổ sung thông tin">
+      <bpmn:incoming>Flow_015</bpmn:incoming>
+      <bpmn:outgoing>Flow_016</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1d5fvv1" name="Xem xét quyền nhạy cảm và ghi nhận quyết định">
+      <bpmn:incoming>Flow_011</bpmn:incoming>
+      <bpmn:incoming>Flow_017</bpmn:incoming>
+      <bpmn:outgoing>Flow_013</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_1h79lef" name="Onboarding hoàn tất">
+      <bpmn:incoming>Flow_039</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Activity_0mlr8ye" name="Xác nhận hoàn tất onboarding">
+      <bpmn:incoming>Flow_038</bpmn:incoming>
+      <bpmn:outgoing>Flow_039</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_Remind" name="Yêu cầu bên phụ trách xử lý công việc còn thiếu">
+      <bpmn:incoming>Flow_035</bpmn:incoming>
+      <bpmn:outgoing>Flow_036</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Completed" name="Các việc bắt buộc đã hoàn tất?">
+      <bpmn:incoming>Flow_034</bpmn:incoming>
+      <bpmn:outgoing>Flow_035</bpmn:outgoing>
+      <bpmn:outgoing>Flow_038</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_0a0muk0" name="Kiểm tra các công việc đã hoàn thành">
+      <bpmn:incoming>Flow_033</bpmn:incoming>
+      <bpmn:incoming>Flow_037</bpmn:incoming>
+      <bpmn:outgoing>Flow_034</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1thzcr4" name="Gửi email thông báo kết quả cho HR">
+      <bpmn:incoming>Flow_032</bpmn:incoming>
+      <bpmn:outgoing>Flow_033</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_07y5vsm" name="Chuẩn bị và ghi nhận cấp phát thiết bị">
+      <bpmn:incoming>Flow_028</bpmn:incoming>
+      <bpmn:outgoing>Flow_032</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Devices" name="Có thiết bị phù hợp?">
+      <bpmn:incoming>Flow_027</bpmn:incoming>
+      <bpmn:outgoing>Flow_028</bpmn:outgoing>
+      <bpmn:outgoing>Flow_029</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_CheckDevices" name="Kiểm tra thiết bị phù hợp để cấp">
+      <bpmn:incoming>Flow_026</bpmn:incoming>
+      <bpmn:incoming>Flow_031</bpmn:incoming>
+      <bpmn:outgoing>Flow_027</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1dotwsh" name="Tạo tài khoản và cấp quyền đã duyệt">
+      <bpmn:incoming>Flow_025</bpmn:incoming>
+      <bpmn:outgoing>Flow_026</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_FixApprovals" name="Bổ sung hoặc xác minh phê duyệt của Manager">
+      <bpmn:incoming>Flow_023</bpmn:incoming>
+      <bpmn:outgoing>Flow_024</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Approvals" name="Đủ phê duyệt hợp lệ?">
+      <bpmn:incoming>Flow_022</bpmn:incoming>
+      <bpmn:outgoing>Flow_023</bpmn:outgoing>
+      <bpmn:outgoing>Flow_025</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_CheckApprovals" name="Kiểm tra các phê duyệt bắt buộc">
+      <bpmn:incoming>Flow_012</bpmn:incoming>
+      <bpmn:incoming>Flow_014</bpmn:incoming>
+      <bpmn:outgoing>Flow_022</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="Event_Revised" name="Nhận nhu cầu cấp quyền điều chỉnh">
+      <bpmn:incoming>Flow_020</bpmn:incoming>
+      <bpmn:outgoing>Flow_021</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageDef_Event_Revised" messageRef="Message_RevisedRequest" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="Activity_Pending" name="Ghi nhận onboarding chưa hoàn tất; phối hợp xử lý">
+      <bpmn:incoming>Flow_019</bpmn:incoming>
+      <bpmn:outgoing>Flow_020</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1xjcm6p" name="Bổ sung hồ sơ xin duyệt bảo mật">
+      <bpmn:incoming>Flow_016</bpmn:incoming>
+      <bpmn:outgoing>Flow_017</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1uwuu4h" name="Có quyền nhạy cảm?">
+      <bpmn:incoming>Flow_010</bpmn:incoming>
+      <bpmn:incoming>Flow_024</bpmn:incoming>
+      <bpmn:outgoing>Flow_011</bpmn:outgoing>
+      <bpmn:outgoing>Flow_012</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_0biqdzz" name="Bổ sung thông tin và gửi lại cho IT">
+      <bpmn:incoming>Flow_008</bpmn:incoming>
+      <bpmn:outgoing>Flow_009</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_0j5z353" name="Thông tin đầy đủ?">
+      <bpmn:incoming>Flow_007</bpmn:incoming>
+      <bpmn:outgoing>Flow_008</bpmn:outgoing>
+      <bpmn:outgoing>Flow_010</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_1t2f0ls" name="Kiểm tra thông tin yêu cầu">
+      <bpmn:incoming>Flow_006</bpmn:incoming>
+      <bpmn:incoming>Flow_009</bpmn:incoming>
+      <bpmn:outgoing>Flow_007</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_0z68448" name="Xác nhận nhu cầu và gửi yêu cầu cấp quyền qua email">
+      <bpmn:incoming>Flow_005</bpmn:incoming>
+      <bpmn:outgoing>Flow_006</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1aus8ow" name="Xác định nhu cầu cấp quyền">
+      <bpmn:incoming>Flow_004</bpmn:incoming>
+      <bpmn:incoming>Flow_021</bpmn:incoming>
+      <bpmn:outgoing>Flow_005</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_0xtrvt2" name="Gửi email thông báo cho Manager và IT">
+      <bpmn:incoming>Flow_003</bpmn:incoming>
+      <bpmn:outgoing>Flow_004</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1krgpl2" name="Ghi nhận thông tin vào Excel">
+      <bpmn:incoming>Flow_002</bpmn:incoming>
+      <bpmn:outgoing>Flow_003</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1j7mmnt" name="Tiếp nhận thông tin nhân viên mới">
+      <bpmn:incoming>Flow_001</bpmn:incoming>
+      <bpmn:outgoing>Flow_002</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:startEvent id="StartEvent_1" name="Đã xác nhận nhân viên nhận việc">
+      <bpmn:outgoing>Flow_001</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_DeviceShortage" name="Thông báo HR và Manager; phối hợp xử lý thiếu thiết bị">
+      <bpmn:incoming>Flow_029</bpmn:incoming>
+      <bpmn:outgoing>Flow_030</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="Event_DeviceReady" name="Thiết bị phù hợp đã sẵn sàng">
+      <bpmn:incoming>Flow_030</bpmn:incoming>
+      <bpmn:outgoing>Flow_031</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageDef_Event_DeviceReady" messageRef="Message_DeviceAvailable" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_030" sourceRef="Activity_DeviceShortage" targetRef="Event_DeviceReady" />
+    <bpmn:intermediateCatchEvent id="Event_Corrected" name="Nhận xác nhận đã xử lý">
+      <bpmn:incoming>Flow_036</bpmn:incoming>
+      <bpmn:outgoing>Flow_037</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageDef_Event_Corrected" messageRef="Message_WorkCorrected" />
+    </bpmn:intermediateCatchEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0mk8wgt">
+      <bpmndi:BPMNShape id="Participant_1qndlxx_di" bpmnElement="Participant_1qndlxx" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3280" height="1420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Security_di" bpmnElement="Lane_Security" isHorizontal="true">
+        <dc:Bounds x="190" y="1230" width="3250" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_IT_di" bpmnElement="Lane_IT" isHorizontal="true">
+        <dc:Bounds x="190" y="830" width="3250" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Manager_di" bpmnElement="Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="190" y="530" width="3250" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_HR_di" bpmnElement="Lane_HR" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="3250" height="450" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="292" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="255" y="206" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1j7mmnt_di" bpmnElement="Activity_1j7mmnt">
+        <dc:Bounds x="420" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1krgpl2_di" bpmnElement="Activity_1krgpl2">
+        <dc:Bounds x="620" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xtrvt2_di" bpmnElement="Activity_0xtrvt2">
+        <dc:Bounds x="820" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1aus8ow_di" bpmnElement="Activity_1aus8ow">
+        <dc:Bounds x="820" y="600" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0z68448_di" bpmnElement="Activity_0z68448">
+        <dc:Bounds x="1030" y="600" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1t2f0ls_di" bpmnElement="Activity_1t2f0ls">
+        <dc:Bounds x="1030" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0j5z353_di" bpmnElement="Gateway_0j5z353" isMarkerVisible="true">
+        <dc:Bounds x="1275" y="915" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1245" y="973" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0biqdzz_di" bpmnElement="Activity_0biqdzz">
+        <dc:Bounds x="1230" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1uwuu4h_di" bpmnElement="Gateway_1uwuu4h" isMarkerVisible="true">
+        <dc:Bounds x="1485" y="615" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1375" y="613" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xjcm6p_di" bpmnElement="Activity_1xjcm6p">
+        <dc:Bounds x="1740" y="700" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Pending_di" bpmnElement="Activity_Pending">
+        <dc:Bounds x="1720" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Revised_di" bpmnElement="Event_Revised">
+        <dc:Bounds x="2002" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1882" y="166.5" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CheckApprovals_di" bpmnElement="Activity_CheckApprovals">
+        <dc:Bounds x="1830" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Approvals_di" bpmnElement="Gateway_Approvals" isMarkerVisible="true">
+        <dc:Bounds x="2105" y="915" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2075" y="973" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_FixApprovals_di" bpmnElement="Activity_FixApprovals">
+        <dc:Bounds x="2060" y="600" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1dotwsh_di" bpmnElement="Activity_1dotwsh">
+        <dc:Bounds x="2250" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CheckDevices_di" bpmnElement="Activity_CheckDevices">
+        <dc:Bounds x="2450" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Devices_di" bpmnElement="Gateway_Devices" isMarkerVisible="true">
+        <dc:Bounds x="2685" y="915" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2655" y="891" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07y5vsm_di" bpmnElement="Activity_07y5vsm">
+        <dc:Bounds x="2830" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1thzcr4_di" bpmnElement="Activity_1thzcr4">
+        <dc:Bounds x="3050" y="900" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0a0muk0_di" bpmnElement="Activity_0a0muk0">
+        <dc:Bounds x="2620" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Completed_di" bpmnElement="Gateway_Completed" isMarkerVisible="true">
+        <dc:Bounds x="2865" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2835" y="116" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Remind_di" bpmnElement="Activity_Remind">
+        <dc:Bounds x="2820" y="320" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0mlr8ye_di" bpmnElement="Activity_0mlr8ye">
+        <dc:Bounds x="3050" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1h79lef_di" bpmnElement="Event_1h79lef">
+        <dc:Bounds x="3292" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3255" y="206" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1d5fvv1_di" bpmnElement="Activity_1d5fvv1">
+        <dc:Bounds x="1750" y="1310" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_RequestMoreInfo_di" bpmnElement="Activity_RequestMoreInfo">
+        <dc:Bounds x="1970" y="1420" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_RejectNotice_di" bpmnElement="Activity_RejectNotice">
+        <dc:Bounds x="2190" y="1310" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1p8zmtm_di" bpmnElement="Gateway_1p8zmtm" isMarkerVisible="true">
+        <dc:Bounds x="2015" y="1325" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1905" y="1319" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_DeviceShortage_di" bpmnElement="Activity_DeviceShortage">
+        <dc:Bounds x="2640" y="1080" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_DeviceReady_di" bpmnElement="Event_DeviceReady">
+        <dc:Bounds x="2942" y="1102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2905" y="1064.5" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Corrected_di" bpmnElement="Event_Corrected">
+        <dc:Bounds x="2672" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2635" y="386" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubProcess_DateChange_di" bpmnElement="SubProcess_DateChange" isExpanded="false">
+        <dc:Bounds x="540" y="320" width="260" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_001_di" bpmnElement="Flow_001">
+        <di:waypoint x="328" y="180" />
+        <di:waypoint x="420" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_002_di" bpmnElement="Flow_002">
+        <di:waypoint x="560" y="180" />
+        <di:waypoint x="620" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_003_di" bpmnElement="Flow_003">
+        <di:waypoint x="760" y="180" />
+        <di:waypoint x="820" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_004_di" bpmnElement="Flow_004">
+        <di:waypoint x="890" y="220" />
+        <di:waypoint x="890" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_021_di" bpmnElement="Flow_021">
+        <di:waypoint x="2020" y="198" />
+        <di:waypoint x="2020" y="350" />
+        <di:waypoint x="920" y="350" />
+        <di:waypoint x="920" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_005_di" bpmnElement="Flow_005">
+        <di:waypoint x="960" y="640" />
+        <di:waypoint x="1030" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_006_di" bpmnElement="Flow_006">
+        <di:waypoint x="1100" y="680" />
+        <di:waypoint x="1100" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_009_di" bpmnElement="Flow_009">
+        <di:waypoint x="1230" y="180" />
+        <di:waypoint x="1000" y="180" />
+        <di:waypoint x="1000" y="940" />
+        <di:waypoint x="1030" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_007_di" bpmnElement="Flow_007">
+        <di:waypoint x="1170" y="940" />
+        <di:waypoint x="1275" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_008_di" bpmnElement="Flow_008">
+        <di:waypoint x="1300" y="915" />
+        <di:waypoint x="1300" y="220" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1230" y="893" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_010_di" bpmnElement="Flow_010">
+        <di:waypoint x="1325" y="940" />
+        <di:waypoint x="1400" y="940" />
+        <di:waypoint x="1400" y="640" />
+        <di:waypoint x="1485" y="640" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1390" y="916" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_024_di" bpmnElement="Flow_024">
+        <di:waypoint x="2130" y="600" />
+        <di:waypoint x="2130" y="560" />
+        <di:waypoint x="1510" y="560" />
+        <di:waypoint x="1510" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_011_di" bpmnElement="Flow_011">
+        <di:waypoint x="1510" y="665" />
+        <di:waypoint x="1510" y="1350" />
+        <di:waypoint x="1750" y="1350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1490" y="693" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_012_di" bpmnElement="Flow_012">
+        <di:waypoint x="1535" y="640" />
+        <di:waypoint x="1560" y="640" />
+        <di:waypoint x="1560" y="940" />
+        <di:waypoint x="1830" y="940" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1550" y="683" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_016_di" bpmnElement="Flow_016">
+        <di:waypoint x="1970" y="1450" />
+        <di:waypoint x="1630" y="1450" />
+        <di:waypoint x="1630" y="740" />
+        <di:waypoint x="1740" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_017_di" bpmnElement="Flow_017">
+        <di:waypoint x="1810" y="780" />
+        <di:waypoint x="1810" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_019_di" bpmnElement="Flow_019">
+        <di:waypoint x="2260" y="1310" />
+        <di:waypoint x="2260" y="1020" />
+        <di:waypoint x="2000" y="1020" />
+        <di:waypoint x="2000" y="470" />
+        <di:waypoint x="1790" y="470" />
+        <di:waypoint x="1790" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_020_di" bpmnElement="Flow_020">
+        <di:waypoint x="1790" y="140" />
+        <di:waypoint x="1790" y="100" />
+        <di:waypoint x="2020" y="100" />
+        <di:waypoint x="2020" y="162" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_014_di" bpmnElement="Flow_014">
+        <di:waypoint x="2040" y="1325" />
+        <di:waypoint x="2040" y="1120" />
+        <di:waypoint x="1900" y="1120" />
+        <di:waypoint x="1900" y="980" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2030" y="1293" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_022_di" bpmnElement="Flow_022">
+        <di:waypoint x="1970" y="940" />
+        <di:waypoint x="2105" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_023_di" bpmnElement="Flow_023">
+        <di:waypoint x="2130" y="915" />
+        <di:waypoint x="2130" y="680" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2120" y="883" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_025_di" bpmnElement="Flow_025">
+        <di:waypoint x="2155" y="940" />
+        <di:waypoint x="2250" y="940" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2173" y="916" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_026_di" bpmnElement="Flow_026">
+        <di:waypoint x="2390" y="940" />
+        <di:waypoint x="2450" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_031_di" bpmnElement="Flow_031">
+        <di:waypoint x="2960" y="1138" />
+        <di:waypoint x="2960" y="1200" />
+        <di:waypoint x="2520" y="1200" />
+        <di:waypoint x="2520" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_027_di" bpmnElement="Flow_027">
+        <di:waypoint x="2590" y="940" />
+        <di:waypoint x="2685" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_028_di" bpmnElement="Flow_028">
+        <di:waypoint x="2735" y="940" />
+        <di:waypoint x="2830" y="940" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2753" y="916" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_029_di" bpmnElement="Flow_029">
+        <di:waypoint x="2710" y="965" />
+        <di:waypoint x="2710" y="1080" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2690" y="996" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_032_di" bpmnElement="Flow_032">
+        <di:waypoint x="2970" y="940" />
+        <di:waypoint x="3050" y="940" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_033_di" bpmnElement="Flow_033">
+        <di:waypoint x="3120" y="900" />
+        <di:waypoint x="3120" y="860" />
+        <di:waypoint x="2590" y="860" />
+        <di:waypoint x="2590" y="180" />
+        <di:waypoint x="2620" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_037_di" bpmnElement="Flow_037">
+        <di:waypoint x="2690" y="342" />
+        <di:waypoint x="2690" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_034_di" bpmnElement="Flow_034">
+        <di:waypoint x="2760" y="180" />
+        <di:waypoint x="2865" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_035_di" bpmnElement="Flow_035">
+        <di:waypoint x="2890" y="205" />
+        <di:waypoint x="2890" y="320" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2880" y="223" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_038_di" bpmnElement="Flow_038">
+        <di:waypoint x="2915" y="180" />
+        <di:waypoint x="3050" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2953" y="156" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_036_di" bpmnElement="Flow_036">
+        <di:waypoint x="2820" y="360" />
+        <di:waypoint x="2708" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_039_di" bpmnElement="Flow_039">
+        <di:waypoint x="3190" y="180" />
+        <di:waypoint x="3292" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_013_di" bpmnElement="Flow_013">
+        <di:waypoint x="1890" y="1350" />
+        <di:waypoint x="2015" y="1350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_015_di" bpmnElement="Flow_015">
+        <di:waypoint x="2040" y="1375" />
+        <di:waypoint x="2040" y="1420" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2040" y="1383" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_018_di" bpmnElement="Flow_018">
+        <di:waypoint x="2065" y="1350" />
+        <di:waypoint x="2190" y="1350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2098" y="1326" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_030_di" bpmnElement="Flow_030">
+        <di:waypoint x="2780" y="1120" />
+        <di:waypoint x="2942" y="1120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_DateChange">
+    <bpmndi:BPMNPlane id="BPMNPlane_DateChange" bpmnElement="SubProcess_DateChange">
+      <bpmndi:BPMNShape id="Lane_Date_Manager_di" bpmnElement="Lane_Date_Manager" isHorizontal="true">
+        <dc:Bounds x="40" y="500" width="850" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Date_IT_di" bpmnElement="Lane_Date_IT" isHorizontal="true">
+        <dc:Bounds x="40" y="270" width="850" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Date_HR_di" bpmnElement="Lane_Date_HR" isHorizontal="true">
+        <dc:Bounds x="40" y="40" width="850" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Start_di" bpmnElement="Date_Start">
+        <dc:Bounds x="122" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="85" y="166" width="110" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Update_di" bpmnElement="Date_Update">
+        <dc:Bounds x="260" y="100" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Notify_di" bpmnElement="Date_Notify">
+        <dc:Bounds x="480" y="100" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_IT_di" bpmnElement="Date_IT">
+        <dc:Bounds x="480" y="330" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Manager_di" bpmnElement="Date_Manager">
+        <dc:Bounds x="480" y="560" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_End_di" bpmnElement="Date_End">
+        <dc:Bounds x="762" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="725" y="626" width="110" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_040_di" bpmnElement="Flow_040">
+        <di:waypoint x="158" y="140" />
+        <di:waypoint x="260" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_041_di" bpmnElement="Flow_041">
+        <di:waypoint x="400" y="140" />
+        <di:waypoint x="480" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_042_di" bpmnElement="Flow_042">
+        <di:waypoint x="550" y="180" />
+        <di:waypoint x="550" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_043_di" bpmnElement="Flow_043">
+        <di:waypoint x="550" y="410" />
+        <di:waypoint x="550" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_044_di" bpmnElement="Flow_044">
+        <di:waypoint x="620" y="600" />
+        <di:waypoint x="762" y="600" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

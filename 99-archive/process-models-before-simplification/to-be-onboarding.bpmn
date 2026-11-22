@@ -1,0 +1,1606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OnboardingToBe" targetNamespace="https://elams.example/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0">
+  <bpmn:message id="Message_StartDateChange" name="Đề nghị thay đổi ngày bắt đầu làm việc" />
+  <bpmn:collaboration id="Collaboration_OnboardingToBe">
+    <bpmn:participant id="Pool_ELAMS" name="Employee Onboarding – To-Be" processRef="Process_OnboardingToBe" />
+    <bpmn:textAnnotation id="Note_Gaps">
+      <bpmn:text>GAP-ON-01/04: yêu cầu tập trung và validation. GAP-ON-02/03: nhiệm vụ, người phụ trách, hạn và tiến độ. GAP-ON-05: lịch sử cấp phát. GAP-ON-06: kiểm soát hoàn tất.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Note_Scope">
+      <bpmn:text>Mở dấu + để xem các vai trò trong nhánh. IT thực hiện quyền bên ngoài/mô phỏng; ELAMS kiểm soát workflow. Thông báo tự động, escalation và cấu hình mẫu là phần mở rộng.</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_OnboardingToBe" name="Employee Onboarding – To-Be" isExecutable="false">
+    <bpmn:documentation>Bản nháp thiết kế TB-ON-01, theo Project Charter, phạm vi MVP, Gap Analysis GAP-ON-01..06 và phản hồi BA. Giữ một file BPMN nguồn với các sơ đồ con. Access xử lý từng quyền bằng Sequential Multi-instance, giữ collection, kiểm tra phê duyệt và kết quả COMPLETED/REJECTED; BLOCKED là chờ non-terminal. IT kiểm tra/tạo tài khoản và cấp quyền bên ngoài hoặc mô phỏng; ELAMS chỉ ghi nhận/kiểm tra workflow, không tích hợp AD/Entra ID. Trước khi đóng, ELAMS kiểm tra điều kiện, HR rà soát, Service Task ghi Completed rồi mới đến End Event. Lỗi kỹ thuật do worker fail/retry/Incident và vận hành xử lý, không giao HR sửa. Chỉ lỗi nghiệp vụ ON_COMPLETION_CONDITIONS_CHANGED có Boundary Error điều hướng về chờ cập nhật. Tài liệu quy tắc/SRS đề xuất: 02-requirements/onboarding-to-be-design-decisions.md. Tuần tự không bảo đảm chống trùng giữa các quy trình độc lập; vẫn cần idempotency và kiểm soát đồng thời. Thẩm quyền, SLA, mẫu nhiệm vụ và chính sách chưa chốt tiếp tục là đề xuất. Đây là BPMN nghiệp vụ, chưa cấu hình chạy engine.</bpmn:documentation>
+    <bpmn:laneSet id="Process_OnboardingToBe_Lanes">
+      <bpmn:lane id="Process_OnboardingToBe_Lane_ELAMS" name="ELAMS">
+        <bpmn:flowNodeRef>S01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S03</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S04</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S05</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Split</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S06</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S08</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S07</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ON_End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_AccessResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Wait_NewCompletionInputs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Devices</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Access</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Process_OnboardingToBe_Lane_HR" name="HR">
+        <bpmn:flowNodeRef>ON_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H03</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H04</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_DateChange</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="ON_Start" name="Nhân viên đã xác nhận nhận việc">
+      <bpmn:outgoing>F_ON_Start_H01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="H01" name="Nhập và gửi yêu cầu onboarding">
+      <bpmn:incoming>F_ON_Start_H01</bpmn:incoming>
+      <bpmn:outgoing>F_H01_S01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S01" name="Kiểm tra dữ liệu và điều kiện tạo yêu cầu">
+      <bpmn:documentation>GAP-ON-04. Kiểm tra quyền HR tạo yêu cầu, trường bắt buộc, ngày hợp lệ, tham chiếu phòng ban/chức danh và cấu hình gán nhiệm vụ. Chưa có định nghĩa chi tiết trường/validation thì phải xác nhận trước khi đặc tả SRS. SRS-ON-04: lỗi kiểm tra dữ liệu/nguồn tham chiếu phải được phân biệt dữ liệu không hợp lệ; không mặc định valid khi không kiểm tra được.</bpmn:documentation>
+      <bpmn:incoming>F_H01_S01</bpmn:incoming>
+      <bpmn:incoming>F_H02_S01</bpmn:incoming>
+      <bpmn:outgoing>F_S01_G01</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="G01" name="Dữ liệu và cấu hình nhiệm vụ hợp lệ?">
+      <bpmn:incoming>F_S01_G01</bpmn:incoming>
+      <bpmn:outgoing>F_G01_S03</bpmn:outgoing>
+      <bpmn:outgoing>F_G01_S02</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="S02" name="Trả lỗi cụ thể, giữ yêu cầu chưa gửi thành công">
+      <bpmn:incoming>F_G01_S02</bpmn:incoming>
+      <bpmn:outgoing>F_S02_H02</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="H02" name="Bổ sung dữ liệu hoặc phối hợp hoàn thiện cấu hình">
+      <bpmn:incoming>F_S02_H02</bpmn:incoming>
+      <bpmn:outgoing>F_H02_S01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S03" name="Lưu yêu cầu, mã định danh và lịch sử khởi tạo">
+      <bpmn:documentation>GAP-ON-01. Lưu duy nhất một hồ sơ cho lần gửi được chấp nhận; thao tác gửi lại do lỗi kỹ thuật không được tạo thêm onboarding/nhiệm vụ cho cùng lần gửi. Quy tắc trùng nhân viên giữa các hồ sơ là câu hỏi cần xác nhận. SRS-ON-03: lỗi lưu hồ sơ không được trả thành công. Cần thiết kế tính nhất quán với tạo nhiệm vụ, idempotency key và phục hồi sau lỗi.</bpmn:documentation>
+      <bpmn:incoming>F_G01_S03</bpmn:incoming>
+      <bpmn:outgoing>F_S03_S04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="S04" name="Tạo nhiệm vụ, gán người và hạn theo quy tắc sẵn có">
+      <bpmn:documentation>GAP-ON-02. Dùng mẫu nhiệm vụ định nghĩa sẵn, gán người hợp lệ, hạn và trạng thái ban đầu. Không tạo lại nhiệm vụ nếu thử lại cùng bước; không tự mở rộng thành màn hình cấu hình mẫu. SRS-ON-03: lỗi hoặc tạo dở dang phải giữ trạng thái khởi tạo chưa xong, không đi S05/AND Split. Retry không tạo trùng; phục hồi phải phát hiện đủ nhiệm vụ bắt buộc.</bpmn:documentation>
+      <bpmn:incoming>F_S03_S04</bpmn:incoming>
+      <bpmn:outgoing>F_S04_S05</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="S05" name="Hiển thị trạng thái và danh sách nhiệm vụ tập trung">
+      <bpmn:documentation>GAP-ON-03. Tiến độ lấy từ trạng thái nhiệm vụ, người phụ trách và thời điểm/hạn; sau mỗi cập nhật kết quả, hệ thống cập nhật dữ liệu hiển thị. Xác định quá hạn từ hạn chưa hoàn tất; thông báo tự động ngoài bản MVP.</bpmn:documentation>
+      <bpmn:incoming>F_S04_S05</bpmn:incoming>
+      <bpmn:outgoing>F_S05_AND_Split</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="AND_Split" name="Thực hiện hai nhóm nhiệm vụ độc lập">
+      <bpmn:incoming>F_S05_AND_Split</bpmn:incoming>
+      <bpmn:outgoing>F_AND_Split_Sub_Access</bpmn:outgoing>
+      <bpmn:outgoing>F_AND_Split_Sub_Devices</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="AND_Join" name="Chờ hai nhánh kết thúc; chưa kết luận nghiệp vụ thành công">
+      <bpmn:documentation>Chỉ đồng bộ token từ S_AccessResult và Sub_Devices. End Event trong từng item kết thúc xử lý item, không chứng minh quyền được cấp; S06 phải đánh giá output và từng nhiệm vụ bắt buộc.</bpmn:documentation>
+      <bpmn:incoming>F_Sub_Devices_AND_Join</bpmn:incoming>
+      <bpmn:incoming>R_S_AccessResult_AND_Join</bpmn:incoming>
+      <bpmn:outgoing>F_AND_Join_S06</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="S06" name="Tổng hợp và kiểm tra nhiệm vụ bắt buộc theo dữ liệu mới nhất">
+      <bpmn:documentation>Đề xuất BR-ON-02/06. Đọc accessOutcome, accessResults[], deviceOutcome, danh sách nhiệm vụ bắt buộc và phiên bản mới nhất. Chỉ cho đóng khi mọi quyền bắt buộc có COMPLETED và bằng chứng hợp lệ; quyền REJECTED phải có quyết định từ chối hợp lệ và xác nhận không bắt buộc. Không chấp nhận BLOCKED/thiếu/không rõ kết quả. Thiết bị phải COMPLETED, mọi nhiệm vụ bắt buộc hoàn tất, đồng bộ lịch chờ ở phiên bản hiện hành đã xong hoặc được xác nhận không áp dụng. REJECTED không đồng nghĩa đã cấp. H04 chỉ bổ sung kết quả theo quy tắc gốc; không khởi tạo lại AND Split. SRS-ON-04: không đọc được trạng thái hoặc version thì chưa xác nhận đủ điều kiện. Cần phân biệt lỗi kỹ thuật với thiếu điều kiện nghiệp vụ. Khi đọc snapshot điều kiện hoàn tất, lưu lastCheckedCompletionInputsRevision của chính snapshot đó. completionInputsRevision chỉ tăng khi có thay đổi dữ liệu liên quan (kết quả nhiệm vụ, phạm vi quyền, hiệu lực phê duyệt, bàn giao, lịch chờ, quy tắc bắt buộc). Không tăng chỉ vì đọc, ghi audit, đổi nhãn chờ hoặc thử đóng để tránh đánh thức vòng lặp giả.</bpmn:documentation>
+      <bpmn:incoming>F_AND_Join_S06</bpmn:incoming>
+      <bpmn:incoming>W_Wait_NewCompletionInputs_S06</bpmn:incoming>
+      <bpmn:outgoing>F_S06_G02</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="S08" name="Ghi trạng thái chờ và hiển thị điều kiện nghiệp vụ còn thiếu">
+      <bpmn:documentation>Thiếu điều kiện hoặc dữ liệu thay đổi trước lúc đóng đi vào trạng thái chờ nghiệp vụ. Giữ revision đã kiểm tra; không tự tăng completionInputsRevision. Đi qua H04 và Wait_NewCompletionInputs, kiểm tra lại khi có cập nhật liên quan. Lỗi kỹ thuật không đi luồng HR này.</bpmn:documentation>
+      <bpmn:incoming>F_G02_S08</bpmn:incoming>
+      <bpmn:outgoing>F_S08_H04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="H03" name="Rà soát kết quả và xác nhận yêu cầu đóng">
+      <bpmn:incoming>F_G02_H03</bpmn:incoming>
+      <bpmn:outgoing>F_H03_S07</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S07" name="Cập nhật trạng thái Completed">
+      <bpmn:documentation>Service Task cập nhật Completed và audit sau HR xác nhận. Worker kiểm tra lần cuối các điều kiện nghiệp vụ và phiên bản trong cùng giao dịch ghi để tránh thay đổi đồng thời. Khi điều kiện bắt buộc/phiên bản đã đổi, chỉ ném BPMN Error ON_COMPLETION_CONDITIONS_CHANGED trước khi ghi Completed; Boundary_CompletionChanged điều hướng về chờ nghiệp vụ. Database mất kết nối, timeout hoặc lỗi backend thông thường phải fail job, cấu hình retry/backoff, hết retries tạo Incident cho vận hành; không complete job, không phát token tới End Event khi ghi thất bại. Không có XOR dùng để giả lập lỗi thực thi. Trường hợp commit thành công nhưng mất phản hồi phải đối soát và retry idempotent, không ghi Completed/audit hai lần. Binding worker, retry và thông số triển khai sẽ đặc tả trong SRS.</bpmn:documentation>
+      <bpmn:incoming>F_H03_S07</bpmn:incoming>
+      <bpmn:outgoing>Q_S07_ON_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="ON_End" name="Onboarding hoàn tất">
+      <bpmn:incoming>Q_S07_ON_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Sub_Devices" name="Điều phối cấp phát và xác nhận thiết bị">
+      <bpmn:incoming>F_AND_Split_Sub_Devices</bpmn:incoming>
+      <bpmn:outgoing>F_Sub_Devices_AND_Join</bpmn:outgoing>
+      <bpmn:laneSet id="Sub_Devices_Lanes">
+        <bpmn:lane id="Sub_Devices_Lane_Employee" name="Employee">
+          <bpmn:flowNodeRef>D06</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Devices_Lane_ELAMS" name="ELAMS">
+          <bpmn:flowNodeRef>D03</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D08</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D10</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D_End</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>DG02</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Devices_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>D01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D04</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D05</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D07</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D09</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>DG01</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="D_Start" name="Có nhiệm vụ cấp thiết bị">
+        <bpmn:outgoing>F_D_Start_D01</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="D01" name="Kiểm tra thiết bị phù hợp để cấp">
+        <bpmn:incoming>F_D_Start_D01</bpmn:incoming>
+        <bpmn:incoming>F_D04_D01</bpmn:incoming>
+        <bpmn:outgoing>F_D01_DG01</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="DG01" name="Có thiết bị phù hợp?">
+        <bpmn:incoming>F_D01_DG01</bpmn:incoming>
+        <bpmn:outgoing>F_DG01_D05</bpmn:outgoing>
+        <bpmn:outgoing>F_DG01_D02</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="D02" name="Ghi nhận thiếu thiết bị và lý do chờ">
+        <bpmn:incoming>F_DG01_D02</bpmn:incoming>
+        <bpmn:outgoing>F_D02_D03</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="D03" name="Lưu trạng thái chờ thiết bị và cập nhật tiến độ">
+        <bpmn:documentation>Lưu lý do thiếu thiết bị, deviceOutcome = BLOCKED và trạng thái chờ IT xác nhận kết quả mới. Không đánh dấu Completed do đã ghi nhận thiếu thiết bị.</bpmn:documentation>
+        <bpmn:incoming>F_D02_D03</bpmn:incoming>
+        <bpmn:outgoing>F_D03_D04</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:userTask id="D04" name="Xác nhận đã có thiết bị phù hợp hoặc thay thế">
+        <bpmn:documentation>Đề xuất BR-ON-03. Đây là User Task của IT, chỉ hoàn thành khi có thông tin mới và IT xác nhận thiết bị phù hợp/thay thế đã sẵn sàng. Không dùng Service Task hoặc timer để tự kiểm tra liên tục. Nếu chưa có thiết bị, User Task tiếp tục chờ, deviceOutcome = BLOCKED và chưa có token đến AND Join.</bpmn:documentation>
+        <bpmn:incoming>F_D03_D04</bpmn:incoming>
+        <bpmn:outgoing>F_D04_D01</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:manualTask id="D05" name="Chuẩn bị và bàn giao thiết bị">
+        <bpmn:incoming>F_DG01_D05</bpmn:incoming>
+        <bpmn:outgoing>F_D05_D06</bpmn:outgoing>
+      </bpmn:manualTask>
+      <bpmn:manualTask id="D06" name="Xác nhận nhận thiết bị bằng biên bản">
+        <bpmn:documentation>Giả định thiết kế cần xác nhận: Employee ký/xác nhận biên bản, IT đính kèm lên ELAMS. Không bắt buộc Employee đã có tài khoản để xác nhận, vì hai nhánh đang chạy song song.</bpmn:documentation>
+        <bpmn:incoming>F_D05_D06</bpmn:incoming>
+        <bpmn:outgoing>F_D06_D07</bpmn:outgoing>
+      </bpmn:manualTask>
+      <bpmn:userTask id="D07" name="Ghi nhận thiết bị, người nhận và bằng chứng bàn giao">
+        <bpmn:incoming>F_D06_D07</bpmn:incoming>
+        <bpmn:outgoing>F_D07_D08</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="D08" name="Kiểm tra dữ liệu và chứng từ cấp phát">
+        <bpmn:documentation>Đề xuất SRS-ON-01. Kiểm tra mã thiết bị, người nhận, thời điểm bàn giao, tình trạng thiết bị và mã biên bản/bằng chứng, người giao và người ghi nhận. Cần xác định bắt buộc/miền giá trị trong SRS. Employee ký biên bản, IT ghi nhận; thiết bị phải bàn giao thật. Không coi thiếu thiết bị là lỗi giấy tờ có thể sửa để hoàn tất.</bpmn:documentation>
+        <bpmn:incoming>F_D07_D08</bpmn:incoming>
+        <bpmn:incoming>F_D09_D08</bpmn:incoming>
+        <bpmn:outgoing>F_D08_DG02</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="DG02" name="Thông tin và xác nhận bàn giao hợp lệ?">
+        <bpmn:incoming>F_D08_DG02</bpmn:incoming>
+        <bpmn:outgoing>F_DG02_D10</bpmn:outgoing>
+        <bpmn:outgoing>F_DG02_D09</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="D09" name="Bổ sung hoặc sửa thông tin bàn giao">
+        <bpmn:incoming>F_DG02_D09</bpmn:incoming>
+        <bpmn:outgoing>F_D09_D08</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="D10" name="Lưu lịch sử cấp phát và hoàn tất nhiệm vụ thiết bị">
+        <bpmn:documentation>Sau bản ghi hợp lệ, lưu lịch sử cấp phát, deviceOutcome = COMPLETED, dữ liệu thiết bị/người nhận/thời điểm/tình trạng/mã biên bản và audit. Việc lưu cần nguyên tử và tránh cấp phát mâu thuẫn; không mở rộng sang toàn bộ quản lý kho.</bpmn:documentation>
+        <bpmn:incoming>F_DG02_D10</bpmn:incoming>
+        <bpmn:outgoing>F_D10_D_End</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="D_End" name="COMPLETED – Thiết bị đã bàn giao và ghi nhận hợp lệ">
+        <bpmn:incoming>F_D10_D_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="F_D_Start_D01" sourceRef="D_Start" targetRef="D01" />
+      <bpmn:sequenceFlow id="F_D01_DG01" sourceRef="D01" targetRef="DG01" />
+      <bpmn:sequenceFlow id="F_DG01_D05" name="Có" sourceRef="DG01" targetRef="D05">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">deviceAvailable = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_DG01_D02" name="Không" sourceRef="DG01" targetRef="D02">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">deviceAvailable = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_D02_D03" sourceRef="D02" targetRef="D03" />
+      <bpmn:sequenceFlow id="F_D03_D04" sourceRef="D03" targetRef="D04" />
+      <bpmn:sequenceFlow id="F_D04_D01" sourceRef="D04" targetRef="D01" />
+      <bpmn:sequenceFlow id="F_D05_D06" sourceRef="D05" targetRef="D06" />
+      <bpmn:sequenceFlow id="F_D06_D07" sourceRef="D06" targetRef="D07" />
+      <bpmn:sequenceFlow id="F_D07_D08" sourceRef="D07" targetRef="D08" />
+      <bpmn:sequenceFlow id="F_D08_DG02" sourceRef="D08" targetRef="DG02" />
+      <bpmn:sequenceFlow id="F_DG02_D10" name="Có" sourceRef="DG02" targetRef="D10">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">handoverRecordValid = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_DG02_D09" name="Không" sourceRef="DG02" targetRef="D09">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">handoverRecordValid = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_D09_D08" sourceRef="D09" targetRef="D08" />
+      <bpmn:sequenceFlow id="F_D10_D_End" sourceRef="D10" targetRef="D_End" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Sub_DateChange" name="Thay đổi ngày bắt đầu làm việc" triggeredByEvent="true">
+      <bpmn:laneSet id="Sub_DateChange_Lanes">
+        <bpmn:lane id="Sub_DateChange_Lane_ELAMS" name="ELAMS">
+          <bpmn:flowNodeRef>C02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>CG01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C04</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C_End</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>Activity_1r5c0n2</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_DateChange_Lane_HR" name="HR">
+          <bpmn:flowNodeRef>C_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C03</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>CG02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C_NoChange</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="C_Start" name="Nhận đề nghị đổi ngày bắt đầu" isInterrupting="false">
+        <bpmn:outgoing>F_C_Start_C01</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="DateChange_MessageDef" messageRef="Message_StartDateChange" />
+      </bpmn:startEvent>
+      <bpmn:userTask id="C01" name="Nhập ngày mới và lý do thay đổi">
+        <bpmn:incoming>F_C_Start_C01</bpmn:incoming>
+        <bpmn:incoming>F_CG02_C01</bpmn:incoming>
+        <bpmn:outgoing>F_C01_C02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="C02" name="Kiểm tra chính sách và xác định nhiệm vụ bị ảnh hưởng">
+        <bpmn:documentation>Đề xuất BR-ON-04/05. Kiểm tra quyền sửa, hồ sơ đang mở, ngày/lý do/phiên bản. Xác định riêng các nhiệm vụ chưa hoàn thành bị ảnh hưởng và tính hạn mới theo chính sách đã xác nhận. Lưu ngày, hạn và phiên bản trong giao dịch dữ liệu; ghi scheduleSyncState = PENDING cho lịch chờ cần đồng bộ. Không tự mở lại nhiệm vụ đã COMPLETED; không tạo lại nhiệm vụ/token, không tự đổi phạm vi quyền. Không cho áp dụng khi quy tắc tính hạn chưa được xác định. Lưu DB không đồng nghĩa timer/job cũ đã được cập nhật.</bpmn:documentation>
+        <bpmn:incoming>F_C01_C02</bpmn:incoming>
+        <bpmn:outgoing>F_C02_CG01</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="CG01" name="Yêu cầu thay đổi hợp lệ?">
+        <bpmn:incoming>F_C02_CG01</bpmn:incoming>
+        <bpmn:outgoing>F_CG01_C03</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1ps65d9</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="C03" name="Xem lý do thay đổi bị từ chối">
+        <bpmn:incoming>F_CG01_C03</bpmn:incoming>
+        <bpmn:outgoing>F_C03_CG02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="CG02" name="Tiếp tục điều chỉnh?">
+        <bpmn:incoming>F_C03_CG02</bpmn:incoming>
+        <bpmn:outgoing>F_CG02_C01</bpmn:outgoing>
+        <bpmn:outgoing>F_CG02_C_NoChange</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="C_NoChange" name="Kết thúc đề nghị, giữ dữ liệu hiện hành">
+        <bpmn:incoming>F_CG02_C_NoChange</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="C_End" name="Ngày, hạn và lịch chờ liên quan đã đồng bộ">
+        <bpmn:incoming>R_C04_C_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="F_C_Start_C01" sourceRef="C_Start" targetRef="C01" />
+      <bpmn:sequenceFlow id="F_C01_C02" sourceRef="C01" targetRef="C02" />
+      <bpmn:sequenceFlow id="F_C02_CG01" sourceRef="C02" targetRef="CG01" />
+      <bpmn:sequenceFlow id="F_CG01_C03" name="Không" sourceRef="CG01" targetRef="C03">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">dateChangeApplied = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_C03_CG02" sourceRef="C03" targetRef="CG02" />
+      <bpmn:sequenceFlow id="F_CG02_C01" name="Có" sourceRef="CG02" targetRef="C01">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">continueDateCorrection = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_CG02_C_NoChange" name="Không" sourceRef="CG02" targetRef="C_NoChange">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">continueDateCorrection = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:serviceTask id="C04" name="Đồng bộ hoặc thay thế lịch chờ bị ảnh hưởng">
+        <bpmn:documentation>Đề xuất SRS-ON-02. Sơ đồ hiện tại không có Timer Event chạy trong các nhánh cấp quyền/thiết bị; không áp đặt Camunda làm nền tảng. Nếu có lịch chờ/job/timer thực tế, xác định theo task và phiên bản, cập nhật/hủy/thay thế đúng cơ chế nền tảng rồi xác nhận lịch mới hiệu lực; không giả định sửa DB tự đổi timer đã tạo. Callback theo phiên bản cũ phải kiểm tra lại phiên bản và không thực hiện nghiệp vụ theo hạn lỗi thời. Nếu lỗi đồng bộ, lưu lỗi và giữ PENDING/FAILED, retry có kiểm soát; Service Task chưa hoàn tất và không đi tới C_End, không báo toàn bộ thay đổi đã hoàn tất. Khi không có lịch nào bị ảnh hưởng, xác nhận NOT_APPLICABLE. Chi tiết retry, phục hồi và cơ chế timer được đặc tả trong SRS/thiết kế thực thi.</bpmn:documentation>
+        <bpmn:incoming>Flow_1s838tq</bpmn:incoming>
+        <bpmn:outgoing>R_C04_C_End</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="R_C04_C_End" sourceRef="C04" targetRef="C_End" />
+      <bpmn:sequenceFlow id="Flow_1ps65d9" sourceRef="CG01" targetRef="Activity_1r5c0n2" />
+      <bpmn:serviceTask id="Activity_1r5c0n2" name="Cập nhật ngày và hạn nhiệm vụ">
+        <bpmn:incoming>Flow_1ps65d9</bpmn:incoming>
+        <bpmn:outgoing>Flow_1s838tq</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="Flow_1s838tq" sourceRef="Activity_1r5c0n2" targetRef="C04" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Sub_Access" name="Điều phối phê duyệt và cấp tài khoản/quyền">
+      <bpmn:documentation>BR-ON-01/02/09 đề xuất. Sequential Multi-instance xử lý lần lượt từng accessItems theo thứ tự collection, giữ nguyên collection và cardinality count(accessItems). Chỉ bắt đầu item tiếp theo khi item hiện tại kết thúc COMPLETED hoặc REJECTED hợp lệ. BLOCKED là trạng thái chờ non-terminal ở A04/A14, không kết thúc item, do đó các item sau cũng chờ. XOR nhạy cảm và phê duyệt Manager/Security vẫn áp dụng riêng từng quyền. Không dùng completionCondition để bỏ các item chưa xong. Giữ kết quả local theo accessItemId, employeeId, targetSystemId, phiên bản; parent chỉ tổng hợp khi tất cả item kết thúc. Tuần tự chỉ giảm nguy cơ tạo tài khoản trùng trong cùng quy trình; backend vẫn phải có idempotency/kiểm soát đồng thời giữa quy trình độc lập và các lần retry.</bpmn:documentation>
+      <bpmn:incoming>F_AND_Split_Sub_Access</bpmn:incoming>
+      <bpmn:outgoing>R_Sub_Access_S_AccessResult</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="true">
+        <bpmn:loopCardinality xsi:type="bpmn:tFormalExpression">count(accessItems)</bpmn:loopCardinality>
+      </bpmn:multiInstanceLoopCharacteristics>
+      <bpmn:laneSet id="Sub_Access_Lanes">
+        <bpmn:lane id="Sub_Access_Lane_HR" name="HR">
+          <bpmn:flowNodeRef>A04</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Access_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>A09</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A10</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A14</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG_AccountExists</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_Reuse</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_Create</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG_AccountMerge</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_Check</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Access_Lane_Security" name="Security">
+          <bpmn:flowNodeRef>A06</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Access_Lane_ELAMS" name="ELAMS">
+          <bpmn:flowNodeRef>A02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A03</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A05</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A07</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A08</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A11</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A13</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A12</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A_Blocked</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A_Rejected</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG03</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG04</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG05</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A_End</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG_ExplicitRejected</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG_Optional</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A_EndRejected</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_RecordCheck</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_RecordNew</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AT_Validate</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>AG_AccountReady</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Sub_Access_Lane_Manager" name="Manager">
+          <bpmn:flowNodeRef>A01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>A_Start</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="A_Start" name="Bắt đầu xử lý một quyền đang xét">
+        <bpmn:outgoing>F_A_Start_A01</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="A01" name="Xác nhận nhu cầu và phê duyệt quyền đang xét">
+        <bpmn:documentation>Manager xác nhận nhu cầu và phê duyệt theo thẩm quyền cho nhân viên. Cơ chế tách người tạo/người duyệt nếu chính sách yêu cầu cần làm rõ. Không mặc định bổ sung quyền mới được hưởng phê duyệt cũ.</bpmn:documentation>
+        <bpmn:incoming>F_A_Start_A01</bpmn:incoming>
+        <bpmn:incoming>F_A04_A01</bpmn:incoming>
+        <bpmn:outgoing>F_A01_A02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="A02" name="Lưu phiên bản yêu cầu và quyết định Manager">
+        <bpmn:documentation>Tạo/lưu phiên bản nhu cầu; quyết định gắn đúng phạm vi quyền, nhân viên và phiên bản. Khi thay đổi phạm vi đã duyệt, phê duyệt cũ bị mất hiệu lực đối với phần thay đổi. Kiểm tra vai trò, trường bắt buộc và lý do từ chối trước khi chấp nhận lưu.</bpmn:documentation>
+        <bpmn:incoming>F_A01_A02</bpmn:incoming>
+        <bpmn:outgoing>F_A02_AG01</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG01" name="Manager phê duyệt hợp lệ?">
+        <bpmn:incoming>F_A02_AG01</bpmn:incoming>
+        <bpmn:outgoing>F_AG01_A05</bpmn:outgoing>
+        <bpmn:outgoing>F_AG01_A03</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:serviceTask id="A03" name="Ghi quyết định từ chối hoặc lỗi phê duyệt và lý do">
+        <bpmn:documentation>Phân biệt từ chối rõ ràng với phê duyệt còn thiếu/sai thẩm quyền/hết hiệu lực. Chỉ có quyết định từ chối hợp lệ mới được xét nhánh REJECTED. Lưu người quyết định, lý do, thời điểm, quyền và phiên bản.</bpmn:documentation>
+        <bpmn:incoming>F_AG01_A03</bpmn:incoming>
+        <bpmn:incoming>F_AG03_A03</bpmn:incoming>
+        <bpmn:outgoing>R_A03_AG_ExplicitRejected</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:userTask id="A04" name="Phối hợp điều chỉnh và gửi lại nhu cầu cấp quyền">
+        <bpmn:incoming>R_A_Blocked_A04</bpmn:incoming>
+        <bpmn:outgoing>F_A04_A01</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="A05" name="Phân loại quyền theo danh mục và xác định cấp duyệt">
+        <bpmn:documentation>GAP-AC-03/04. Danh mục mức nhạy cảm phải được xác nhận. Nếu chưa phân loại được quyền, không tự coi là thường; chưa được phép qua AG04 cho tới khi xác định đúng cấp duyệt.</bpmn:documentation>
+        <bpmn:incoming>F_AG01_A05</bpmn:incoming>
+        <bpmn:outgoing>F_A05_AG02</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG02" name="Có quyền nhạy cảm?">
+        <bpmn:incoming>F_A05_AG02</bpmn:incoming>
+        <bpmn:outgoing>F_AG02_A06</bpmn:outgoing>
+        <bpmn:outgoing>F_AG02_A08</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="A06" name="Đánh giá và quyết định quyền nhạy cảm">
+        <bpmn:incoming>F_AG02_A06</bpmn:incoming>
+        <bpmn:outgoing>F_A06_A07</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="A07" name="Lưu quyết định Security và lịch sử xét duyệt">
+        <bpmn:documentation>Tương tự quyết định Manager: gắn actor, thời điểm, phiên bản, kết quả và lý do từ chối. Chỉ lưu quyết định đúng thẩm quyền; AG03 Có khi quyết định hợp lệ cho mọi quyền nhạy cảm liên quan.</bpmn:documentation>
+        <bpmn:incoming>F_A06_A07</bpmn:incoming>
+        <bpmn:outgoing>F_A07_AG03</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG03" name="Security phê duyệt hợp lệ?">
+        <bpmn:incoming>F_A07_AG03</bpmn:incoming>
+        <bpmn:outgoing>F_AG03_A08</bpmn:outgoing>
+        <bpmn:outgoing>F_AG03_A03</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:serviceTask id="A08" name="Kiểm tra đủ phê duyệt đúng phiên bản và thẩm quyền">
+        <bpmn:documentation>GAP-AC-05. Chỉ cho IT bắt đầu nhiệm vụ thực hiện khi phê duyệt bắt buộc đủ, đúng thẩm quyền, còn hiệu lực và cùng phiên bản. Nếu cần duyệt lại quay A04/A01. Phần quyền không cần cấp phải có cơ sở nghiệp vụ, không tự bỏ qua nhiệm vụ bắt buộc.</bpmn:documentation>
+        <bpmn:incoming>F_AG02_A08</bpmn:incoming>
+        <bpmn:incoming>F_AG03_A08</bpmn:incoming>
+        <bpmn:incoming>F_A14_A08</bpmn:incoming>
+        <bpmn:outgoing>F_A08_AG04</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG04" name="Được phép thực hiện cấp quyền?">
+        <bpmn:incoming>F_A08_AG04</bpmn:incoming>
+        <bpmn:outgoing>R_AG04_A_Blocked</bpmn:outgoing>
+        <bpmn:outgoing>Q_AG04_AT_Check</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="A09" name="Cấp quyền đã được phê duyệt">
+        <bpmn:documentation>User Task của IT thực hiện hoặc mô phỏng cấp quyền đang xét trên tài khoản đã xác nhận, sau phê duyệt hợp lệ. Không tạo tài khoản tại bước này. Kiểm tra phê duyệt mới nhất trước thao tác; quyền REJECTED không đi đến đây, BLOCKED chờ theo logic cũ. ELAMS không tự cấp quyền bên ngoài. Nếu thử lại, chỉ xử lý phần chưa cấp/lỗi để tránh cấp lặp.</bpmn:documentation>
+        <bpmn:incoming>Q_AG_AccountReady_A09</bpmn:incoming>
+        <bpmn:outgoing>F_A09_A10</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="A10" name="Cập nhật kết quả cấp quyền">
+        <bpmn:incoming>F_A09_A10</bpmn:incoming>
+        <bpmn:outgoing>F_A10_A11</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="A11" name="Ghi nhận và kiểm tra kết quả cấp quyền">
+        <bpmn:documentation>ELAMS ghi nhận kết quả, kiểm tra bằng chứng IT cung cấp và hiệu lực phê duyệt theo item/phiên bản. Không giả định có tích hợp để tự xác minh bên ngoài. Chỉ kết quả thành công hợp lệ được đánh dấu COMPLETED; thất bại/chưa rõ/hiệu lực thay đổi đi A13 BLOCKED.</bpmn:documentation>
+        <bpmn:incoming>F_A10_A11</bpmn:incoming>
+        <bpmn:outgoing>F_A11_AG05</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG05" name="Kết quả thành công và phê duyệt còn hợp lệ?">
+        <bpmn:incoming>F_A11_AG05</bpmn:incoming>
+        <bpmn:outgoing>F_AG05_A12</bpmn:outgoing>
+        <bpmn:outgoing>F_AG05_A13</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:serviceTask id="A13" name="Ghi BLOCKED do lỗi kết quả hoặc hiệu lực phê duyệt">
+        <bpmn:documentation>accessItemOutcome = BLOCKED (non-terminal) do lỗi thực hiện/bằng chứng hoặc hiệu lực phê duyệt. Item chờ User Task A14; không tự hoàn tất; Sequential Multi-instance chưa bắt đầu item kế tiếp cho tới khi item hiện tại kết thúc. Nếu sửa đổi phạm vi thì phê duyệt lại đúng phiên bản trước khi cấp quyền.</bpmn:documentation>
+        <bpmn:incoming>F_AG05_A13</bpmn:incoming>
+        <bpmn:incoming>Q_AG_AccountReady_A13</bpmn:incoming>
+        <bpmn:outgoing>F_A13_A14</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:userTask id="A14" name="Khắc phục phần còn lỗi hoặc phối hợp xin duyệt lại">
+        <bpmn:incoming>F_A13_A14</bpmn:incoming>
+        <bpmn:outgoing>F_A14_A08</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="A12" name="Ghi COMPLETED theo từng quyền và cập nhật tiến độ">
+        <bpmn:documentation>GAP-ON-03, GAP-AC-06. Ghi trạng thái Completed và audit của nhiệm vụ, cập nhật tiến độ. Đây là kết thúc nhánh, parent chỉ tiếp tục sau khi nhánh thiết bị cũng hoàn tất.</bpmn:documentation>
+        <bpmn:incoming>F_AG05_A12</bpmn:incoming>
+        <bpmn:outgoing>F_A12_A_End</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="A_End" name="COMPLETED – Quyền đã cấp và có kết quả hợp lệ">
+        <bpmn:incoming>F_A12_A_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="F_A_Start_A01" sourceRef="A_Start" targetRef="A01" />
+      <bpmn:sequenceFlow id="F_A01_A02" sourceRef="A01" targetRef="A02" />
+      <bpmn:sequenceFlow id="F_A02_AG01" sourceRef="A02" targetRef="AG01" />
+      <bpmn:sequenceFlow id="F_AG01_A05" name="Có" sourceRef="AG01" targetRef="A05">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">managerApprovalValid = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_AG01_A03" name="Không" sourceRef="AG01" targetRef="A03">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">managerApprovalValid = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_A04_A01" sourceRef="A04" targetRef="A01" />
+      <bpmn:sequenceFlow id="F_A05_AG02" sourceRef="A05" targetRef="AG02" />
+      <bpmn:sequenceFlow id="F_AG02_A06" name="Có" sourceRef="AG02" targetRef="A06">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">sensitiveAccess = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_AG02_A08" name="Không" sourceRef="AG02" targetRef="A08">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">sensitiveAccess = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_A06_A07" sourceRef="A06" targetRef="A07" />
+      <bpmn:sequenceFlow id="F_A07_AG03" sourceRef="A07" targetRef="AG03" />
+      <bpmn:sequenceFlow id="F_AG03_A08" name="Có" sourceRef="AG03" targetRef="A08">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">securityApprovalValid = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_AG03_A03" name="Không" sourceRef="AG03" targetRef="A03">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">securityApprovalValid = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_A08_AG04" sourceRef="A08" targetRef="AG04" />
+      <bpmn:sequenceFlow id="F_A09_A10" sourceRef="A09" targetRef="A10" />
+      <bpmn:sequenceFlow id="F_A10_A11" sourceRef="A10" targetRef="A11" />
+      <bpmn:sequenceFlow id="F_A11_AG05" sourceRef="A11" targetRef="AG05" />
+      <bpmn:sequenceFlow id="F_AG05_A12" name="Có" sourceRef="AG05" targetRef="A12">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">provisionResultAccepted = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_AG05_A13" name="Không" sourceRef="AG05" targetRef="A13">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">provisionResultAccepted = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="F_A13_A14" sourceRef="A13" targetRef="A14" />
+      <bpmn:sequenceFlow id="F_A14_A08" sourceRef="A14" targetRef="A08" />
+      <bpmn:sequenceFlow id="F_A12_A_End" sourceRef="A12" targetRef="A_End" />
+      <bpmn:exclusiveGateway id="AG_ExplicitRejected" name="Có quyết định từ chối hợp lệ?">
+        <bpmn:incoming>R_A03_AG_ExplicitRejected</bpmn:incoming>
+        <bpmn:outgoing>R_AG_ExplicitRejected_AG_Optional</bpmn:outgoing>
+        <bpmn:outgoing>R_AG_ExplicitRejected_A_Blocked</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:exclusiveGateway id="AG_Optional" name="Quyền đã xác nhận là không bắt buộc?">
+        <bpmn:incoming>R_AG_ExplicitRejected_AG_Optional</bpmn:incoming>
+        <bpmn:outgoing>R_AG_Optional_A_Rejected</bpmn:outgoing>
+        <bpmn:outgoing>R_AG_Optional_A_Blocked</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:serviceTask id="A_Blocked" name="Ghi BLOCKED, giữ nhiệm vụ chờ điều chỉnh">
+        <bpmn:documentation>Ghi accessItemOutcome = BLOCKED và lý do chờ; onboarding giữ trạng thái bị chặn/đang xử lý theo chính sách đề xuất. A04 là User Task chờ HR phối hợp điều chỉnh, không tự lặp và không tự hủy. Điều chỉnh phải xét duyệt lại theo phiên bản. Định nghĩa thống nhất: BLOCKED là non-terminal; không có End Event BLOCKED. Chỉ tiếp tục item sau hành động xử lý mới của người dùng, không tự kết thúc để phát token về AND Join.</bpmn:documentation>
+        <bpmn:incoming>R_AG_ExplicitRejected_A_Blocked</bpmn:incoming>
+        <bpmn:incoming>R_AG_Optional_A_Blocked</bpmn:incoming>
+        <bpmn:incoming>R_AG04_A_Blocked</bpmn:incoming>
+        <bpmn:outgoing>R_A_Blocked_A04</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="A_Rejected" name="Ghi REJECTED theo từng quyền; không ghi đã cấp">
+        <bpmn:documentation>Chỉ kết thúc item quyền đã được xác nhận không bắt buộc và có quyết định từ chối hợp lệ. Ghi accessItemOutcome = REJECTED, granted = false. Các quyền khác vẫn được xử lý theo multi-instance; không coi toàn bộ danh sách quyền đã cấp.</bpmn:documentation>
+        <bpmn:incoming>R_AG_Optional_A_Rejected</bpmn:incoming>
+        <bpmn:outgoing>R_A_Rejected_A_EndRejected</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="A_EndRejected" name="REJECTED – Quyền không bắt buộc bị từ chối">
+        <bpmn:incoming>R_A_Rejected_A_EndRejected</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="R_A03_AG_ExplicitRejected" sourceRef="A03" targetRef="AG_ExplicitRejected" />
+      <bpmn:sequenceFlow id="R_AG_ExplicitRejected_AG_Optional" name="Có" sourceRef="AG_ExplicitRejected" targetRef="AG_Optional">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">validRejectionDecision = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="R_AG_ExplicitRejected_A_Blocked" name="Không" sourceRef="AG_ExplicitRejected" targetRef="A_Blocked">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">validRejectionDecision = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="R_AG_Optional_A_Rejected" name="Có" sourceRef="AG_Optional" targetRef="A_Rejected">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">mandatoryClassificationConfirmed = true and accessItemMandatory = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="R_AG_Optional_A_Blocked" name="Không" sourceRef="AG_Optional" targetRef="A_Blocked">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">mandatoryClassificationConfirmed = false or accessItemMandatory = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="R_A_Rejected_A_EndRejected" sourceRef="A_Rejected" targetRef="A_EndRejected" />
+      <bpmn:sequenceFlow id="R_A_Blocked_A04" sourceRef="A_Blocked" targetRef="A04" />
+      <bpmn:sequenceFlow id="R_AG04_A_Blocked" name="Không" sourceRef="AG04" targetRef="A_Blocked">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">currentApprovalsValid = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:userTask id="AT_Check" name="Kiểm tra tài khoản hệ thống đích">
+        <bpmn:documentation>IT kiểm tra thực tế hoặc mô phỏng trên hệ thống đích theo employeeId và targetSystemId; xác định tài khoản đúng người và tình trạng sử dụng. Không suy ra không tồn tại khi không kiểm tra được. Nếu chưa kiểm tra được, User Task tiếp tục chờ IT xử lý; không tự chọn nhánh tạo mới. ELAMS không tự tích hợp hệ thống đích.</bpmn:documentation>
+        <bpmn:incoming>Q_AG04_AT_Check</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_Check_AT_RecordCheck</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="AT_RecordCheck" name="Ghi nhận kết quả kiểm tra tài khoản">
+        <bpmn:documentation>ELAMS lưu kết quả IT cung cấp gồm nhân viên, hệ thống đích, định danh tài khoản nếu có, thời điểm/người kiểm tra và bằng chứng. Chỉ hoàn tất sau dữ liệu kiểm tra hợp lệ; lỗi lưu thuộc cơ chế job fail/retry/incident, không được mặc định accountExists=false.</bpmn:documentation>
+        <bpmn:incoming>Q_AT_Check_AT_RecordCheck</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_RecordCheck_AG_AccountExists</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG_AccountExists" name="Tài khoản đã tồn tại?">
+        <bpmn:incoming>Q_AT_RecordCheck_AG_AccountExists</bpmn:incoming>
+        <bpmn:outgoing>Q_AG_AccountExists_AT_Reuse</bpmn:outgoing>
+        <bpmn:outgoing>Q_AG_AccountExists_AT_Create</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="AT_Reuse" name="Xác nhận dùng tài khoản hiện có">
+        <bpmn:documentation>IT xác nhận tài khoản hiện có đúng nhân viên, hệ thống đích và có thể sử dụng; không tạo lại tài khoản. Nếu bị khóa/sai người/chưa đủ điều kiện thì ghi nhận trạng thái chưa sẵn sàng để AG_AccountReady chặn cấp quyền.</bpmn:documentation>
+        <bpmn:incoming>Q_AG_AccountExists_AT_Reuse</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_Reuse_AG_AccountMerge</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="AT_Create" name="Tạo tài khoản và cập nhật kết quả">
+        <bpmn:documentation>IT tạo hoặc mô phỏng tài khoản trên hệ thống đích rồi cập nhật kết quả, định danh và bằng chứng lên ELAMS. Không có hành động tạo tài khoản tự động của ELAMS. Nếu không chắc lần tạo trước đã thành công, phải kiểm tra lại trước khi tạo tiếp, tránh trùng. Không tự retry thao tác bên ngoài chỉ vì mất phản hồi.</bpmn:documentation>
+        <bpmn:incoming>Q_AG_AccountExists_AT_Create</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_Create_AT_RecordNew</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="AT_RecordNew" name="Ghi nhận kết quả tạo tài khoản">
+        <bpmn:documentation>ELAMS lưu kết quả thành công/thất bại/chưa rõ của việc IT tạo tài khoản; không tự tạo tài khoản bên ngoài. accountReady chỉ có thể đúng khi có tài khoản được xác nhận cho nhân viên và hệ thống đích. Ghi thất bại không có nghĩa là tạo thành công.</bpmn:documentation>
+        <bpmn:incoming>Q_AT_Create_AT_RecordNew</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_RecordNew_AG_AccountMerge</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG_AccountMerge" name="Hội tụ kết quả chuẩn bị tài khoản">
+        <bpmn:incoming>Q_AT_Reuse_AG_AccountMerge</bpmn:incoming>
+        <bpmn:incoming>Q_AT_RecordNew_AG_AccountMerge</bpmn:incoming>
+        <bpmn:outgoing>Q_AG_AccountMerge_AT_Validate</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:serviceTask id="AT_Validate" name="Kiểm tra tài khoản và phê duyệt">
+        <bpmn:documentation>Kiểm tra kết quả tài khoản đúng nhân viên/hệ thống đích và phê duyệt hiện hành đúng quyền/phiên bản. Kết quả không rõ hoặc thất bại không được cấp quyền; đi A13 ghi BLOCKED, chờ A14. Sau xử lý, A08 kiểm tra phê duyệt và IT kiểm tra lại tài khoản để nhận ra tài khoản đã có, thay vì tạo lại.</bpmn:documentation>
+        <bpmn:incoming>Q_AG_AccountMerge_AT_Validate</bpmn:incoming>
+        <bpmn:outgoing>Q_AT_Validate_AG_AccountReady</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="AG_AccountReady" name="Tài khoản và phê duyệt hợp lệ?">
+        <bpmn:incoming>Q_AT_Validate_AG_AccountReady</bpmn:incoming>
+        <bpmn:outgoing>Q_AG_AccountReady_A09</bpmn:outgoing>
+        <bpmn:outgoing>Q_AG_AccountReady_A13</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Q_AG04_AT_Check" name="Có" sourceRef="AG04" targetRef="AT_Check">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">currentApprovalsValid = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Q_AT_Check_AT_RecordCheck" sourceRef="AT_Check" targetRef="AT_RecordCheck" />
+      <bpmn:sequenceFlow id="Q_AT_RecordCheck_AG_AccountExists" sourceRef="AT_RecordCheck" targetRef="AG_AccountExists" />
+      <bpmn:sequenceFlow id="Q_AG_AccountExists_AT_Reuse" name="Có" sourceRef="AG_AccountExists" targetRef="AT_Reuse">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">accountExists = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Q_AG_AccountExists_AT_Create" name="Không" sourceRef="AG_AccountExists" targetRef="AT_Create">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">accountExists = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Q_AT_Reuse_AG_AccountMerge" sourceRef="AT_Reuse" targetRef="AG_AccountMerge" />
+      <bpmn:sequenceFlow id="Q_AT_Create_AT_RecordNew" sourceRef="AT_Create" targetRef="AT_RecordNew" />
+      <bpmn:sequenceFlow id="Q_AT_RecordNew_AG_AccountMerge" sourceRef="AT_RecordNew" targetRef="AG_AccountMerge" />
+      <bpmn:sequenceFlow id="Q_AG_AccountMerge_AT_Validate" sourceRef="AG_AccountMerge" targetRef="AT_Validate" />
+      <bpmn:sequenceFlow id="Q_AT_Validate_AG_AccountReady" sourceRef="AT_Validate" targetRef="AG_AccountReady" />
+      <bpmn:sequenceFlow id="Q_AG_AccountReady_A09" name="Có" sourceRef="AG_AccountReady" targetRef="A09">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">accountReady = true and currentApprovalsValid = true</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Q_AG_AccountReady_A13" name="Không" sourceRef="AG_AccountReady" targetRef="A13">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">accountReady = false or currentApprovalsValid = false</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+    </bpmn:subProcess>
+    <bpmn:serviceTask id="S_AccessResult" name="Tổng hợp kết quả từng quyền: COMPLETED hoặc REJECTED">
+      <bpmn:documentation>Ghi accessResults[] theo từng quyền, kết quả cấp thực tế và quyết định từ chối. accessOutcome = COMPLETED nếu toàn bộ quyền yêu cầu được cấp hợp lệ; REJECTED nếu còn quyền không bắt buộc bị từ chối hợp lệ nhưng mọi quyền bắt buộc đã hoàn tất; BLOCKED/thiếu/chưa xác định không được tự coi là thành công. Với tập quyền rỗng chỉ được coi không có quyền cần cấp khi chính sách và cấu hình vai trò đã xác nhận, không phải do lỗi thiếu dữ liệu. Chỉ tổng hợp sau khi mọi instance đã kết thúc. BLOCKED là trạng thái live của item chưa kết thúc, không phải terminal output được chấp nhận. Không để kết quả cuối của một item ghi đè kết quả item khác.</bpmn:documentation>
+      <bpmn:incoming>R_Sub_Access_S_AccessResult</bpmn:incoming>
+      <bpmn:outgoing>R_S_AccessResult_AND_Join</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="H04" name="Phối hợp HR/IT xử lý và gửi kết quả bổ sung">
+      <bpmn:documentation>User Task của HR để phối hợp bên phụ trách, gồm IT, bổ sung kết quả theo đúng quyền và quy tắc gốc. Không tự đánh dấu thành công nhiệm vụ chưa xong. Hoàn thành tác vụ này chưa đủ để kiểm tra lại: điểm Wait_NewCompletionInputs phải nhận thấy dữ liệu liên quan có revision mới.</bpmn:documentation>
+      <bpmn:incoming>F_S08_H04</bpmn:incoming>
+      <bpmn:outgoing>W_H04_Wait_NewCompletionInputs</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="G02" name="Đủ điều kiện hoàn tất?">
+      <bpmn:incoming>F_S06_G02</bpmn:incoming>
+      <bpmn:outgoing>F_G02_H03</bpmn:outgoing>
+      <bpmn:outgoing>F_G02_S08</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="Wait_NewCompletionInputs" name="Chờ dữ liệu hoàn tất có cập nhật mới">
+      <bpmn:documentation>BR-ON-07 đề xuất. Chỉ tiếp tục khi phiên bản dữ liệu liên quan điều kiện hoàn tất mới hơn phiên bản đã kiểm tra. Nếu có cập nhật trước lúc bắt đầu chờ, điều kiện được kiểm tra ngay; không yêu cầu gửi lại sự kiện. Nếu H04 được bấm hoàn thành mà không có dữ liệu mới, tiếp tục chờ. Không dùng timer polling. Mapping expression/biến cần thiết kế khi triển khai engine.</bpmn:documentation>
+      <bpmn:incoming>W_H04_Wait_NewCompletionInputs</bpmn:incoming>
+      <bpmn:outgoing>W_Wait_NewCompletionInputs_S06</bpmn:outgoing>
+      <bpmn:conditionalEventDefinition id="Condition_NewCompletionInputs">
+        <bpmn:condition xsi:type="bpmn:tFormalExpression">completionInputsRevision &gt; lastCheckedCompletionInputsRevision</bpmn:condition>
+      </bpmn:conditionalEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="F_ON_Start_H01" sourceRef="ON_Start" targetRef="H01" />
+    <bpmn:sequenceFlow id="F_H01_S01" sourceRef="H01" targetRef="S01" />
+    <bpmn:sequenceFlow id="F_H02_S01" sourceRef="H02" targetRef="S01" />
+    <bpmn:sequenceFlow id="F_S01_G01" sourceRef="S01" targetRef="G01" />
+    <bpmn:sequenceFlow id="F_G01_S03" name="Có" sourceRef="G01" targetRef="S03">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">requestInputValid = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_G01_S02" name="Không" sourceRef="G01" targetRef="S02">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">requestInputValid = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_S02_H02" sourceRef="S02" targetRef="H02" />
+    <bpmn:sequenceFlow id="F_S03_S04" sourceRef="S03" targetRef="S04" />
+    <bpmn:sequenceFlow id="F_S04_S05" sourceRef="S04" targetRef="S05" />
+    <bpmn:sequenceFlow id="F_S05_AND_Split" sourceRef="S05" targetRef="AND_Split" />
+    <bpmn:sequenceFlow id="F_AND_Split_Sub_Access" sourceRef="AND_Split" targetRef="Sub_Access" />
+    <bpmn:sequenceFlow id="F_AND_Split_Sub_Devices" sourceRef="AND_Split" targetRef="Sub_Devices" />
+    <bpmn:sequenceFlow id="F_Sub_Devices_AND_Join" sourceRef="Sub_Devices" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="R_S_AccessResult_AND_Join" sourceRef="S_AccessResult" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="F_AND_Join_S06" sourceRef="AND_Join" targetRef="S06" />
+    <bpmn:sequenceFlow id="W_Wait_NewCompletionInputs_S06" sourceRef="Wait_NewCompletionInputs" targetRef="S06" />
+    <bpmn:sequenceFlow id="F_S06_G02" sourceRef="S06" targetRef="G02" />
+    <bpmn:sequenceFlow id="F_G02_S08" name="Không" sourceRef="G02" targetRef="S08">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">mandatoryConditionsMet = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_S08_H04" sourceRef="S08" targetRef="H04" />
+    <bpmn:sequenceFlow id="F_G02_H03" name="Có" sourceRef="G02" targetRef="H03">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">mandatoryConditionsMet = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_H03_S07" sourceRef="H03" targetRef="S07" />
+    <bpmn:sequenceFlow id="R_Sub_Access_S_AccessResult" sourceRef="Sub_Access" targetRef="S_AccessResult" />
+    <bpmn:sequenceFlow id="W_H04_Wait_NewCompletionInputs" sourceRef="H04" targetRef="Wait_NewCompletionInputs" />
+    <bpmn:sequenceFlow id="Q_S07_ON_End" sourceRef="S07" targetRef="ON_End" />
+  </bpmn:process>
+  <bpmn:error id="Error_OnboardingConditionsChanged" name="Điều kiện hoàn tất đã thay đổi" errorCode="ON_COMPLETION_CONDITIONS_CHANGED" />
+  <bpmndi:BPMNDiagram id="Process_OnboardingToBe_Diagram">
+    <bpmndi:BPMNPlane id="Process_OnboardingToBe_Plane" bpmnElement="Collaboration_OnboardingToBe">
+      <bpmndi:BPMNShape id="Pool_ELAMS_di" bpmnElement="Pool_ELAMS" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="4130" height="800" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Process_OnboardingToBe_Lane_HR_di" bpmnElement="Process_OnboardingToBe_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="4100" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Process_OnboardingToBe_Lane_ELAMS_di" bpmnElement="Process_OnboardingToBe_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="180" y="480" width="4100" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ON_Start_di" bpmnElement="ON_Start">
+        <dc:Bounds x="272" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="220" y="206" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H01_di" bpmnElement="H01">
+        <dc:Bounds x="415" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S01_di" bpmnElement="S01">
+        <dc:Bounds x="415" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G01_di" bpmnElement="G01" isMarkerVisible="true">
+        <dc:Bounds x="715" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="670" y="526" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S02_di" bpmnElement="S02">
+        <dc:Bounds x="655" y="735" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H02_di" bpmnElement="H02">
+        <dc:Bounds x="655" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S03_di" bpmnElement="S03">
+        <dc:Bounds x="915" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S04_di" bpmnElement="S04">
+        <dc:Bounds x="1175" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S05_di" bpmnElement="S05">
+        <dc:Bounds x="1435" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Split_di" bpmnElement="AND_Split">
+        <dc:Bounds x="1735" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1690" y="518" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Join_di" bpmnElement="AND_Join">
+        <dc:Bounds x="2645" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2600" y="505" width="140" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S06_di" bpmnElement="S06">
+        <dc:Bounds x="2765" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S08_di" bpmnElement="S08">
+        <dc:Bounds x="2995" y="735" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H03_di" bpmnElement="H03">
+        <dc:Bounds x="3265" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S07_di" bpmnElement="S07">
+        <dc:Bounds x="3515" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ON_End_di" bpmnElement="ON_End">
+        <dc:Bounds x="4052" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4000" y="606" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Devices_di" bpmnElement="Sub_Devices" isExpanded="false">
+        <dc:Bounds x="2050" y="735" width="300" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_DateChange_di" bpmnElement="Sub_DateChange" isExpanded="false">
+        <dc:Bounds x="1130" y="175" width="280" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Access_di" bpmnElement="Sub_Access" isExpanded="false">
+        <dc:Bounds x="2050" y="525" width="300" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_AccessResult_di" bpmnElement="S_AccessResult">
+        <dc:Bounds x="2425" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H04_di" bpmnElement="H04">
+        <dc:Bounds x="3015" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G02_di" bpmnElement="G02" isMarkerVisible="true">
+        <dc:Bounds x="2995" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2950" y="531" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Wait_NewCompletionInputs_di" bpmnElement="Wait_NewCompletionInputs">
+        <dc:Bounds x="2832" y="762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2780" y="806" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_ON_Start_H01_di" bpmnElement="F_ON_Start_H01">
+        <di:waypoint x="308" y="180" />
+        <di:waypoint x="415" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_H01_S01_di" bpmnElement="F_H01_S01">
+        <di:waypoint x="500" y="225" />
+        <di:waypoint x="500" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_H02_S01_di" bpmnElement="F_H02_S01">
+        <di:waypoint x="740" y="225" />
+        <di:waypoint x="740" y="360" />
+        <di:waypoint x="530" y="360" />
+        <di:waypoint x="530" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S01_G01_di" bpmnElement="F_S01_G01">
+        <di:waypoint x="585" y="580" />
+        <di:waypoint x="715" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_G01_S03_di" bpmnElement="F_G01_S03">
+        <di:waypoint x="765" y="580" />
+        <di:waypoint x="915" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="825" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_G01_S02_di" bpmnElement="F_G01_S02">
+        <di:waypoint x="740" y="605" />
+        <di:waypoint x="740" y="735" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="747" y="623" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S02_H02_di" bpmnElement="F_S02_H02">
+        <di:waypoint x="655" y="780" />
+        <di:waypoint x="630" y="780" />
+        <di:waypoint x="630" y="180" />
+        <di:waypoint x="655" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S03_S04_di" bpmnElement="F_S03_S04">
+        <di:waypoint x="1085" y="580" />
+        <di:waypoint x="1175" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S04_S05_di" bpmnElement="F_S04_S05">
+        <di:waypoint x="1345" y="580" />
+        <di:waypoint x="1435" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S05_AND_Split_di" bpmnElement="F_S05_AND_Split">
+        <di:waypoint x="1605" y="580" />
+        <di:waypoint x="1735" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AND_Split_Sub_Access_di" bpmnElement="F_AND_Split_Sub_Access">
+        <di:waypoint x="1785" y="580" />
+        <di:waypoint x="2050" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AND_Split_Sub_Devices_di" bpmnElement="F_AND_Split_Sub_Devices">
+        <di:waypoint x="1760" y="605" />
+        <di:waypoint x="1760" y="790" />
+        <di:waypoint x="2050" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_Sub_Devices_AND_Join_di" bpmnElement="F_Sub_Devices_AND_Join">
+        <di:waypoint x="2350" y="790" />
+        <di:waypoint x="2670" y="790" />
+        <di:waypoint x="2670" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_S_AccessResult_AND_Join_di" bpmnElement="R_S_AccessResult_AND_Join">
+        <di:waypoint x="2595" y="580" />
+        <di:waypoint x="2645" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AND_Join_S06_di" bpmnElement="F_AND_Join_S06">
+        <di:waypoint x="2695" y="580" />
+        <di:waypoint x="2765" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="W_Wait_NewCompletionInputs_S06_di" bpmnElement="W_Wait_NewCompletionInputs_S06">
+        <di:waypoint x="2850" y="762" />
+        <di:waypoint x="2850" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S06_G02_di" bpmnElement="F_S06_G02">
+        <di:waypoint x="2935" y="580" />
+        <di:waypoint x="2995" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_G02_S08_di" bpmnElement="F_G02_S08">
+        <di:waypoint x="3020" y="605" />
+        <di:waypoint x="3020" y="670" />
+        <di:waypoint x="2950" y="670" />
+        <di:waypoint x="2950" y="780" />
+        <di:waypoint x="2995" y="780" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3027" y="623" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_S08_H04_di" bpmnElement="F_S08_H04">
+        <di:waypoint x="3100" y="735" />
+        <di:waypoint x="3100" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_G02_H03_di" bpmnElement="F_G02_H03">
+        <di:waypoint x="3045" y="580" />
+        <di:waypoint x="3350" y="580" />
+        <di:waypoint x="3350" y="225" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3192" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_H03_S07_di" bpmnElement="F_H03_S07">
+        <di:waypoint x="3435" y="180" />
+        <di:waypoint x="3450" y="180" />
+        <di:waypoint x="3450" y="580" />
+        <di:waypoint x="3515" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_Sub_Access_S_AccessResult_di" bpmnElement="R_Sub_Access_S_AccessResult">
+        <di:waypoint x="2350" y="580" />
+        <di:waypoint x="2425" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="W_H04_Wait_NewCompletionInputs_di" bpmnElement="W_H04_Wait_NewCompletionInputs">
+        <di:waypoint x="3185" y="180" />
+        <di:waypoint x="3220" y="180" />
+        <di:waypoint x="3220" y="700" />
+        <di:waypoint x="2890" y="700" />
+        <di:waypoint x="2890" y="780" />
+        <di:waypoint x="2868" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_S07_ON_End_di" bpmnElement="Q_S07_ON_End">
+        <di:waypoint x="3685" y="580" />
+        <di:waypoint x="4052" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Note_Gaps_di" bpmnElement="Note_Gaps">
+        <dc:Bounds x="1620" y="120" width="1050" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Scope_di" bpmnElement="Note_Scope">
+        <dc:Bounds x="1620" y="270" width="1050" height="100" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Access_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Access_Plane" bpmnElement="Sub_Access">
+      <bpmndi:BPMNShape id="Sub_Access_Lane_Manager_di" bpmnElement="Sub_Access_Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3750" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Access_Lane_ELAMS_di" bpmnElement="Sub_Access_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="160" y="480" width="3750" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Access_Lane_Security_di" bpmnElement="Sub_Access_Lane_Security" isHorizontal="true">
+        <dc:Bounds x="160" y="880" width="3750" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Access_Lane_IT_di" bpmnElement="Sub_Access_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="160" y="1280" width="3750" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Access_Lane_HR_di" bpmnElement="Sub_Access_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="160" y="1680" width="3750" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_Start_di" bpmnElement="A_Start">
+        <dc:Bounds x="232" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="180" y="206" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A01_di" bpmnElement="A01">
+        <dc:Bounds x="395" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A02_di" bpmnElement="A02">
+        <dc:Bounds x="395" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG01_di" bpmnElement="AG01" isMarkerVisible="true">
+        <dc:Bounds x="695" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="528" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A03_di" bpmnElement="A03">
+        <dc:Bounds x="635" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A04_di" bpmnElement="A04">
+        <dc:Bounds x="635" y="1735" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A05_di" bpmnElement="A05">
+        <dc:Bounds x="895" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG02_di" bpmnElement="AG02" isMarkerVisible="true">
+        <dc:Bounds x="1185" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1140" y="613" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A06_di" bpmnElement="A06">
+        <dc:Bounds x="1355" y="1035" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A07_di" bpmnElement="A07">
+        <dc:Bounds x="1355" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG03_di" bpmnElement="AG03" isMarkerVisible="true">
+        <dc:Bounds x="1655" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1610" y="531" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A08_di" bpmnElement="A08">
+        <dc:Bounds x="1865" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG04_di" bpmnElement="AG04" isMarkerVisible="true">
+        <dc:Bounds x="2155" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2190" y="536" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A09_di" bpmnElement="A09">
+        <dc:Bounds x="2335" y="1335" width="170" height="90" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A10_di" bpmnElement="A10">
+        <dc:Bounds x="2575" y="1335" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A11_di" bpmnElement="A11">
+        <dc:Bounds x="2575" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG05_di" bpmnElement="AG05" isMarkerVisible="true">
+        <dc:Bounds x="2875" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2830" y="517.5" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A13_di" bpmnElement="A13">
+        <dc:Bounds x="2815" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A14_di" bpmnElement="A14">
+        <dc:Bounds x="3065" y="1335" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A12_di" bpmnElement="A12">
+        <dc:Bounds x="3295" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_End_di" bpmnElement="A_End">
+        <dc:Bounds x="3602" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3550" y="606" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG_ExplicitRejected_di" bpmnElement="AG_ExplicitRejected" isMarkerVisible="true">
+        <dc:Bounds x="975" y="765" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="930" y="823" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG_Optional_di" bpmnElement="AG_Optional" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="765" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1180" y="727.5" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_Blocked_di" bpmnElement="A_Blocked">
+        <dc:Bounds x="1475" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_Rejected_di" bpmnElement="A_Rejected">
+        <dc:Bounds x="1865" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_EndRejected_di" bpmnElement="A_EndRejected">
+        <dc:Bounds x="2372" y="772" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2320" y="816" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_RecordCheck_di" bpmnElement="AT_RecordCheck">
+        <dc:Bounds x="345" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG_AccountExists_di" bpmnElement="AG_AccountExists" isMarkerVisible="true">
+        <dc:Bounds x="695" y="1355" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="1331" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_Reuse_di" bpmnElement="AT_Reuse">
+        <dc:Bounds x="915" y="1335" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_Create_di" bpmnElement="AT_Create">
+        <dc:Bounds x="915" y="1535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_RecordNew_di" bpmnElement="AT_RecordNew">
+        <dc:Bounds x="3215" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG_AccountMerge_di" bpmnElement="AG_AccountMerge" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="1355" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1180" y="1413" width="140" height="44" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_Validate_di" bpmnElement="AT_Validate">
+        <dc:Bounds x="3465" y="745" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AG_AccountReady_di" bpmnElement="AG_AccountReady" isMarkerVisible="true">
+        <dc:Bounds x="3735" y="765" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3770" y="816" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AT_Check_di" bpmnElement="AT_Check">
+        <dc:Bounds x="345" y="1335" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_A_Start_A01_di" bpmnElement="F_A_Start_A01">
+        <di:waypoint x="268" y="180" />
+        <di:waypoint x="395" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A01_A02_di" bpmnElement="F_A01_A02">
+        <di:waypoint x="480" y="225" />
+        <di:waypoint x="480" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A02_AG01_di" bpmnElement="F_A02_AG01">
+        <di:waypoint x="565" y="580" />
+        <di:waypoint x="695" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG01_A05_di" bpmnElement="F_AG01_A05">
+        <di:waypoint x="745" y="580" />
+        <di:waypoint x="895" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="805" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG01_A03_di" bpmnElement="F_AG01_A03">
+        <di:waypoint x="720" y="605" />
+        <di:waypoint x="720" y="745" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="727" y="643" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A04_A01_di" bpmnElement="F_A04_A01">
+        <di:waypoint x="635" y="1780" />
+        <di:waypoint x="600" y="1780" />
+        <di:waypoint x="600" y="180" />
+        <di:waypoint x="565" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A05_AG02_di" bpmnElement="F_A05_AG02">
+        <di:waypoint x="1065" y="580" />
+        <di:waypoint x="1185" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG02_A06_di" bpmnElement="F_AG02_A06">
+        <di:waypoint x="1235" y="580" />
+        <di:waypoint x="1330" y="580" />
+        <di:waypoint x="1330" y="1080" />
+        <di:waypoint x="1355" y="1080" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1268" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG02_A08_di" bpmnElement="F_AG02_A08">
+        <di:waypoint x="1210" y="555" />
+        <di:waypoint x="1210" y="500" />
+        <di:waypoint x="1930" y="500" />
+        <di:waypoint x="1930" y="535" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1221" y="508" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A06_A07_di" bpmnElement="F_A06_A07">
+        <di:waypoint x="1440" y="1035" />
+        <di:waypoint x="1440" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A07_AG03_di" bpmnElement="F_A07_AG03">
+        <di:waypoint x="1525" y="580" />
+        <di:waypoint x="1655" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG03_A08_di" bpmnElement="F_AG03_A08">
+        <di:waypoint x="1705" y="580" />
+        <di:waypoint x="1865" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1770" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG03_A03_di" bpmnElement="F_AG03_A03">
+        <di:waypoint x="1680" y="605" />
+        <di:waypoint x="1680" y="680" />
+        <di:waypoint x="750" y="680" />
+        <di:waypoint x="750" y="745" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1687" y="613" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A08_AG04_di" bpmnElement="F_A08_AG04">
+        <di:waypoint x="1960" y="535" />
+        <di:waypoint x="1960" y="500" />
+        <di:waypoint x="2180" y="500" />
+        <di:waypoint x="2180" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A09_A10_di" bpmnElement="F_A09_A10">
+        <di:waypoint x="2505" y="1380" />
+        <di:waypoint x="2575" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A10_A11_di" bpmnElement="F_A10_A11">
+        <di:waypoint x="2660" y="1335" />
+        <di:waypoint x="2660" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A11_AG05_di" bpmnElement="F_A11_AG05">
+        <di:waypoint x="2745" y="580" />
+        <di:waypoint x="2875" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG05_A12_di" bpmnElement="F_AG05_A12">
+        <di:waypoint x="2925" y="580" />
+        <di:waypoint x="3295" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3096" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_AG05_A13_di" bpmnElement="F_AG05_A13">
+        <di:waypoint x="2900" y="605" />
+        <di:waypoint x="2900" y="745" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2907" y="663" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A13_A14_di" bpmnElement="F_A13_A14">
+        <di:waypoint x="2900" y="835" />
+        <di:waypoint x="2900" y="1380" />
+        <di:waypoint x="3065" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A14_A08_di" bpmnElement="F_A14_A08">
+        <di:waypoint x="3150" y="1335" />
+        <di:waypoint x="3150" y="1320" />
+        <di:waypoint x="2100" y="1320" />
+        <di:waypoint x="2100" y="580" />
+        <di:waypoint x="2035" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_A12_A_End_di" bpmnElement="F_A12_A_End">
+        <di:waypoint x="3465" y="580" />
+        <di:waypoint x="3602" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_A03_AG_ExplicitRejected_di" bpmnElement="R_A03_AG_ExplicitRejected">
+        <di:waypoint x="805" y="790" />
+        <di:waypoint x="975" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_AG_ExplicitRejected_AG_Optional_di" bpmnElement="R_AG_ExplicitRejected_AG_Optional">
+        <di:waypoint x="1025" y="790" />
+        <di:waypoint x="1225" y="790" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1097" y="768" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_AG_ExplicitRejected_A_Blocked_di" bpmnElement="R_AG_ExplicitRejected_A_Blocked">
+        <di:waypoint x="1000" y="765" />
+        <di:waypoint x="1000" y="700" />
+        <di:waypoint x="1560" y="700" />
+        <di:waypoint x="1560" y="745" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="997" y="733" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_AG_Optional_A_Rejected_di" bpmnElement="R_AG_Optional_A_Rejected">
+        <di:waypoint x="1250" y="815" />
+        <di:waypoint x="1250" y="850" />
+        <di:waypoint x="1810" y="850" />
+        <di:waypoint x="1810" y="790" />
+        <di:waypoint x="1865" y="790" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1247" y="823" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_AG_Optional_A_Blocked_di" bpmnElement="R_AG_Optional_A_Blocked">
+        <di:waypoint x="1275" y="790" />
+        <di:waypoint x="1475" y="790" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1360" y="768" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_A_Rejected_A_EndRejected_di" bpmnElement="R_A_Rejected_A_EndRejected">
+        <di:waypoint x="2035" y="790" />
+        <di:waypoint x="2372" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_A_Blocked_A04_di" bpmnElement="R_A_Blocked_A04">
+        <di:waypoint x="1560" y="835" />
+        <di:waypoint x="1560" y="950" />
+        <di:waypoint x="830" y="950" />
+        <di:waypoint x="830" y="1780" />
+        <di:waypoint x="805" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_AG04_A_Blocked_di" bpmnElement="R_AG04_A_Blocked">
+        <di:waypoint x="2155" y="580" />
+        <di:waypoint x="2130" y="580" />
+        <di:waypoint x="2130" y="700" />
+        <di:waypoint x="1690" y="700" />
+        <di:waypoint x="1690" y="790" />
+        <di:waypoint x="1645" y="790" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2087" y="594" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG04_AT_Check_di" bpmnElement="Q_AG04_AT_Check">
+        <di:waypoint x="2180" y="605" />
+        <di:waypoint x="2180" y="1180" />
+        <di:waypoint x="560" y="1180" />
+        <di:waypoint x="560" y="1380" />
+        <di:waypoint x="515" y="1380" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2155" y="874" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_Check_AT_RecordCheck_di" bpmnElement="Q_AT_Check_AT_RecordCheck">
+        <di:waypoint x="430" y="1335" />
+        <di:waypoint x="430" y="835" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_RecordCheck_AG_AccountExists_di" bpmnElement="Q_AT_RecordCheck_AG_AccountExists">
+        <di:waypoint x="515" y="790" />
+        <di:waypoint x="620" y="790" />
+        <di:waypoint x="620" y="1380" />
+        <di:waypoint x="695" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG_AccountExists_AT_Reuse_di" bpmnElement="Q_AG_AccountExists_AT_Reuse">
+        <di:waypoint x="745" y="1380" />
+        <di:waypoint x="915" y="1380" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="805" y="1358" width="100" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG_AccountExists_AT_Create_di" bpmnElement="Q_AG_AccountExists_AT_Create">
+        <di:waypoint x="720" y="1405" />
+        <di:waypoint x="720" y="1580" />
+        <di:waypoint x="915" y="1580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="695" y="1472" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_Reuse_AG_AccountMerge_di" bpmnElement="Q_AT_Reuse_AG_AccountMerge">
+        <di:waypoint x="1085" y="1380" />
+        <di:waypoint x="1225" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_Create_AT_RecordNew_di" bpmnElement="Q_AT_Create_AT_RecordNew">
+        <di:waypoint x="1085" y="1580" />
+        <di:waypoint x="3050" y="1580" />
+        <di:waypoint x="3050" y="790" />
+        <di:waypoint x="3215" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_RecordNew_AG_AccountMerge_di" bpmnElement="Q_AT_RecordNew_AG_AccountMerge">
+        <di:waypoint x="3300" y="835" />
+        <di:waypoint x="3300" y="860" />
+        <di:waypoint x="1250" y="860" />
+        <di:waypoint x="1250" y="1355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG_AccountMerge_AT_Validate_di" bpmnElement="Q_AG_AccountMerge_AT_Validate">
+        <di:waypoint x="1275" y="1380" />
+        <di:waypoint x="2320" y="1380" />
+        <di:waypoint x="2320" y="1060" />
+        <di:waypoint x="3440" y="1060" />
+        <di:waypoint x="3440" y="790" />
+        <di:waypoint x="3465" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AT_Validate_AG_AccountReady_di" bpmnElement="Q_AT_Validate_AG_AccountReady">
+        <di:waypoint x="3635" y="790" />
+        <di:waypoint x="3735" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG_AccountReady_A09_di" bpmnElement="Q_AG_AccountReady_A09">
+        <di:waypoint x="3760" y="815" />
+        <di:waypoint x="3760" y="1490" />
+        <di:waypoint x="2420" y="1490" />
+        <di:waypoint x="2420" y="1425" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3735" y="1126" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Q_AG_AccountReady_A13_di" bpmnElement="Q_AG_AccountReady_A13">
+        <di:waypoint x="3760" y="765" />
+        <di:waypoint x="3760" y="680" />
+        <di:waypoint x="3000" y="680" />
+        <di:waypoint x="3000" y="790" />
+        <di:waypoint x="2985" y="790" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3735" y="695" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Devices_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Devices_Plane" bpmnElement="Sub_Devices">
+      <bpmndi:BPMNShape id="Sub_Devices_Lane_IT_di" bpmnElement="Sub_Devices_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3100" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Devices_Lane_ELAMS_di" bpmnElement="Sub_Devices_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="160" y="480" width="3100" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Devices_Lane_Employee_di" bpmnElement="Sub_Devices_Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="160" y="880" width="3100" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_Start_di" bpmnElement="D_Start">
+        <dc:Bounds x="232" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="180" y="206" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D01_di" bpmnElement="D01">
+        <dc:Bounds x="395" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DG01_di" bpmnElement="DG01" isMarkerVisible="true">
+        <dc:Bounds x="695" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="131" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D02_di" bpmnElement="D02">
+        <dc:Bounds x="635" y="285" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D03_di" bpmnElement="D03">
+        <dc:Bounds x="635" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D04_di" bpmnElement="D04">
+        <dc:Bounds x="895" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D05_di" bpmnElement="D05">
+        <dc:Bounds x="1155" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D06_di" bpmnElement="D06">
+        <dc:Bounds x="1395" y="935" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D07_di" bpmnElement="D07">
+        <dc:Bounds x="1635" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D08_di" bpmnElement="D08">
+        <dc:Bounds x="1875" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DG02_di" bpmnElement="DG02" isMarkerVisible="true">
+        <dc:Bounds x="2175" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2130" y="614.5" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D09_di" bpmnElement="D09">
+        <dc:Bounds x="2115" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D10_di" bpmnElement="D10">
+        <dc:Bounds x="2375" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_End_di" bpmnElement="D_End">
+        <dc:Bounds x="2712" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2660" y="606" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_D_Start_D01_di" bpmnElement="F_D_Start_D01">
+        <di:waypoint x="268" y="180" />
+        <di:waypoint x="395" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D01_DG01_di" bpmnElement="F_D01_DG01">
+        <di:waypoint x="565" y="180" />
+        <di:waypoint x="695" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DG01_D05_di" bpmnElement="F_DG01_D05">
+        <di:waypoint x="745" y="180" />
+        <di:waypoint x="770" y="180" />
+        <di:waypoint x="770" y="250" />
+        <di:waypoint x="1130" y="250" />
+        <di:waypoint x="1130" y="180" />
+        <di:waypoint x="1155" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="757" y="206" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DG01_D02_di" bpmnElement="F_DG01_D02">
+        <di:waypoint x="720" y="205" />
+        <di:waypoint x="720" y="285" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="677" y="223" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D02_D03_di" bpmnElement="F_D02_D03">
+        <di:waypoint x="720" y="375" />
+        <di:waypoint x="720" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D03_D04_di" bpmnElement="F_D03_D04">
+        <di:waypoint x="805" y="580" />
+        <di:waypoint x="830" y="580" />
+        <di:waypoint x="830" y="180" />
+        <di:waypoint x="895" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D04_D01_di" bpmnElement="F_D04_D01">
+        <di:waypoint x="980" y="135" />
+        <di:waypoint x="980" y="100" />
+        <di:waypoint x="480" y="100" />
+        <di:waypoint x="480" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D05_D06_di" bpmnElement="F_D05_D06">
+        <di:waypoint x="1325" y="180" />
+        <di:waypoint x="1350" y="180" />
+        <di:waypoint x="1350" y="980" />
+        <di:waypoint x="1395" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D06_D07_di" bpmnElement="F_D06_D07">
+        <di:waypoint x="1565" y="980" />
+        <di:waypoint x="1590" y="980" />
+        <di:waypoint x="1590" y="180" />
+        <di:waypoint x="1635" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D07_D08_di" bpmnElement="F_D07_D08">
+        <di:waypoint x="1805" y="180" />
+        <di:waypoint x="1830" y="180" />
+        <di:waypoint x="1830" y="580" />
+        <di:waypoint x="1875" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D08_DG02_di" bpmnElement="F_D08_DG02">
+        <di:waypoint x="2045" y="580" />
+        <di:waypoint x="2175" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DG02_D10_di" bpmnElement="F_DG02_D10">
+        <di:waypoint x="2225" y="580" />
+        <di:waypoint x="2375" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2285" y="558" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DG02_D09_di" bpmnElement="F_DG02_D09">
+        <di:waypoint x="2200" y="555" />
+        <di:waypoint x="2200" y="225" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2207" y="513" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D09_D08_di" bpmnElement="F_D09_D08">
+        <di:waypoint x="2200" y="225" />
+        <di:waypoint x="2200" y="240" />
+        <di:waypoint x="1960" y="240" />
+        <di:waypoint x="1960" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D10_D_End_di" bpmnElement="F_D10_D_End">
+        <di:waypoint x="2545" y="580" />
+        <di:waypoint x="2712" y="580" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_DateChange_Diagram">
+    <bpmndi:BPMNPlane id="Sub_DateChange_Plane" bpmnElement="Sub_DateChange">
+      <bpmndi:BPMNShape id="Sub_DateChange_Lane_HR_di" bpmnElement="Sub_DateChange_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2200" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_DateChange_Lane_ELAMS_di" bpmnElement="Sub_DateChange_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="160" y="480" width="2200" height="400" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_Start_di" bpmnElement="C_Start">
+        <dc:Bounds x="252" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="200" y="206" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C01_di" bpmnElement="C01">
+        <dc:Bounds x="435" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C02_di" bpmnElement="C02">
+        <dc:Bounds x="695" y="535" width="170" height="90" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CG01_di" bpmnElement="CG01" isMarkerVisible="true">
+        <dc:Bounds x="1015" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="978.5" y="615" width="123" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C03_di" bpmnElement="C03">
+        <dc:Bounds x="955" y="135" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CG02_di" bpmnElement="CG02" isMarkerVisible="true">
+        <dc:Bounds x="1265" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1220" y="213" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_NoChange_di" bpmnElement="C_NoChange">
+        <dc:Bounds x="1542" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1440" y="206" width="140" height="50" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_End_di" bpmnElement="C_End">
+        <dc:Bounds x="1762" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1660" y="606" width="140" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C04_di" bpmnElement="C04">
+        <dc:Bounds x="1425" y="535" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r5c0n2_di" bpmnElement="Activity_1r5c0n2">
+        <dc:Bounds x="1200" y="540" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_C_Start_C01_di" bpmnElement="F_C_Start_C01">
+        <di:waypoint x="288" y="180" />
+        <di:waypoint x="435" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_C01_C02_di" bpmnElement="F_C01_C02">
+        <di:waypoint x="510" y="225" />
+        <di:waypoint x="510" y="580" />
+        <di:waypoint x="695" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_C02_CG01_di" bpmnElement="F_C02_CG01">
+        <di:waypoint x="865" y="580" />
+        <di:waypoint x="1015" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_CG01_C03_di" bpmnElement="F_CG01_C03">
+        <di:waypoint x="1040" y="555" />
+        <di:waypoint x="1040" y="225" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="975" y="368" width="45" height="18" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_C03_CG02_di" bpmnElement="F_C03_CG02">
+        <di:waypoint x="1125" y="180" />
+        <di:waypoint x="1265" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_CG02_C01_di" bpmnElement="F_CG02_C01">
+        <di:waypoint x="1290" y="155" />
+        <di:waypoint x="1290" y="110" />
+        <di:waypoint x="630" y="110" />
+        <di:waypoint x="630" y="180" />
+        <di:waypoint x="605" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1237" y="133" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_CG02_C_NoChange_di" bpmnElement="F_CG02_C_NoChange">
+        <di:waypoint x="1315" y="180" />
+        <di:waypoint x="1542" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1347" y="158" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R_C04_C_End_di" bpmnElement="R_C04_C_End">
+        <di:waypoint x="1595" y="580" />
+        <di:waypoint x="1762" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ps65d9_di" bpmnElement="Flow_1ps65d9">
+        <di:waypoint x="1065" y="580" />
+        <di:waypoint x="1200" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1s838tq_di" bpmnElement="Flow_1s838tq">
+        <di:waypoint x="1300" y="580" />
+        <di:waypoint x="1425" y="580" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

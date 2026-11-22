@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# draw.io backup / temp files
+*.bkp
+.$*
+*.drawio.dtmp
+
+# Editor
+.vscode/
+*.swp
