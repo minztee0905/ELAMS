@@ -22,12 +22,11 @@ Workspace lưu tài liệu phân tích nghiệp vụ, sơ đồ và thiết kế
 | [02-requirements](02-requirements/) | BRD, SRS, business rules, use case, user story và acceptance criteria |
 | [03-process-models](03-process-models/) | BPMN hiện trạng và tương lai, activity diagram |
 | [04-data-models](04-data-models/) | Mô hình dữ liệu, ERD và data dictionary |
-| [05-interaction-models](05-interaction-models/) | Use case diagram, system context và sequence diagram |
+| [05-interaction-models](05-interaction-models/) | System context và sequence diagram (sơ đồ use case nằm cùng đặc tả use case trong `02-requirements/use-case-specifications/`) |
 | [06-ui-ux](06-ui-ux/) | User flow, cấu trúc màn hình, wireframe, thiết kế Figma và prototype |
 | [07-validation](07-validation/) | Checklist rà soát, phản hồi và kịch bản UAT |
 | [08-traceability](08-traceability/) | Liên kết mục tiêu, yêu cầu, sơ đồ, màn hình và kiểm thử |
 | [09-implementation](09-implementation/) | Chuẩn bị mã nguồn frontend, backend, database và workflow thực thi |
-| [99-archive](99-archive/) | Phiên bản đã được thay thế hoặc ngừng sử dụng |
 
 ## Nguyên tắc làm việc
 
@@ -37,7 +36,6 @@ Workspace lưu tài liệu phân tích nghiệp vụ, sơ đồ và thiết kế
 - Giai đoạn lập trình là tùy chọn, thực hiện sau khi portfolio BA đã có thể gửi đi.
 - Chỉ ghi trạng thái đã duyệt khi có xác nhận của người có thẩm quyền.
 - Lưu nguồn sơ đồ có thể chỉnh sửa cùng bản xuất khi bắt đầu xây dựng sơ đồ.
-- Thiết kế Figma sẽ được thực hiện ở giai đoạn UI/UX; thư mục hiện tại dùng để lưu mô tả, liên kết và bản xuất.
 
 ## Vị trí sơ đồ và tài liệu yêu cầu
 

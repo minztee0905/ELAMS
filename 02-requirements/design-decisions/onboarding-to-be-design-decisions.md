@@ -92,4 +92,4 @@ File BPMN tổng thể là nguồn sơ đồ hiện hành. Ngày 21/11/2026, sơ
 - Gộp 8 phần tử kiểm tra/tạo tài khoản thành một bước AT; gộp A09 và A10 thành A09; gộp A_Blocked và A13 vào hai bước xử lý BLOCKED là A04 và A14; bỏ A08 vì cấu trúc luồng đã bảo đảm chỉ cấp quyền sau khi đủ phê duyệt.
 - Bỏ Boundary Error và các bước kỹ thuật; cơ chế này được mô tả tại ghi chú kỹ thuật.
 
-Bản trước khi rút gọn được lưu tại `99-archive/process-models-before-simplification/`. PNG cũ đã được xoá; cần xuất lại từ Camunda Modeler.
+Bản trước khi rút gọn có trong lịch sử Git.

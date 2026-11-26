@@ -8,7 +8,7 @@
 
 **Trạng thái:** Ghi chú cho giai đoạn lập trình (tùy chọn). Không thuộc bộ hồ sơ BA.
 
-**Lưu ý:** Mã phần tử nhắc tới bên dưới (S08, `Boundary_CompletionChanged`, `Wait_NewCompletionInputs`, AT_*, A08…) thuộc BPMN To-Be trước khi rút gọn, lưu tại `99-archive/process-models-before-simplification/`. BPMN hiện hành ở mức nghiệp vụ; khi xây dựng mô hình thực thi cần thiết kế lại các phần tử này.
+**Lưu ý:** Mã phần tử nhắc tới bên dưới (S08, `Boundary_CompletionChanged`, `Wait_NewCompletionInputs`, AT_*, A08…) thuộc BPMN To-Be trước khi rút gọn, có trong lịch sử Git. BPMN hiện hành ở mức nghiệp vụ; khi xây dựng mô hình thực thi cần thiết kế lại các phần tử này.
 
 **Nguồn:** Chuyển từ [Onboarding To-Be design decisions](../../02-requirements/design-decisions/onboarding-to-be-design-decisions.md) bản 0.4 theo đề xuất RM-01 trong [roadmap-change-proposals.md](../../00-project-management/roadmap-change-proposals.md). Nội dung được giữ nguyên ý, chỉ sắp xếp lại.
 

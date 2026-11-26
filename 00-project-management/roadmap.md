@@ -2,13 +2,15 @@
 
 **Dự án:** Employee Lifecycle & Access Management System (ELAMS)
 
-**Phiên bản:** 1.1
+**Phiên bản:** 1.2
 
-**Cập nhật:** 22/11/2026
+**Cập nhật:** 26/11/2026
 
 **Mục tiêu:** Hoàn thiện hồ sơ BA cho một dự án nhỏ để đưa vào CV ứng tuyển Business Analyst Intern.
 
 **Thay đổi so với bản 1.0:** Áp dụng các đề xuất đã duyệt trong [roadmap-change-proposals.md](roadmap-change-proposals.md): làm lát cắt dọc Onboarding trước (RM-03), giới hạn độ sâu Task 08 (RM-01, RM-02), đưa Portfolio lên sớm (RM-05), lập trình là tùy chọn (RM-06).
+
+**Thay đổi bản 1.2:** Sau khi xong lát cắt Onboarding, làm Access Request và Offboarding với cùng chuỗi sản phẩm, rồi mới làm SRS, ERD và portfolio (BA quyết định 26/11/2026).
 
 ---
 
@@ -21,26 +23,27 @@
 | Phase 2 – BPMN To-Be | 08 | Đã duyệt cả 3 quy trình (22/11/2026) | [Onboarding To-Be](../03-process-models/to-be/onboarding/), [Access Request To-Be](../03-process-models/to-be/access-request/), [Offboarding To-Be](../03-process-models/to-be/offboarding/) |
 | Phase 2 – Business Rules | 09 | Có bản nháp (22/11/2026) | [Business Rules Catalog](../02-requirements/business-rules/business-rules-catalog.md) – 29 quy tắc cho cả 3 quy trình |
 | Phase 2 – BRD | 10 | Có bản nháp phần Onboarding (22/11/2026) | [BRD Onboarding](../02-requirements/brd/brd-onboarding.md) |
-| Phase 3 – System Analysis & SRS | 11–16 | Đang làm – có Use Case và User Stories phần Onboarding (22/11/2026) | [Use Case Onboarding](../02-requirements/use-case-specifications/onboarding-use-cases.md), [User Stories Onboarding](../02-requirements/user-stories/onboarding-user-stories.md) |
-| Phase 4 – UI/UX | 17–18 | Chưa bắt đầu | |
-| Phase 5 – Validation | 19–22 | Chưa bắt đầu | [Review log](../07-validation/review-log.md) (mẫu) |
+| Phase 3 – System Analysis & SRS | 11–16 | Đang làm – có Use Case và User Stories phần Onboarding | [Use Case Onboarding](../02-requirements/use-case-specifications/onboarding-use-cases.md), [User Stories Onboarding](../02-requirements/user-stories/onboarding-user-stories.md) |
+| Phase 4 – UI/UX | 17–18 | Có phần Onboarding | [Đặc tả màn hình Onboarding](../06-ui-ux/onboarding-screen-specifications.md), [Figma](https://www.figma.com/design/sxQaybHEwuvCMIBTmxwuxE/ELAMS) |
+| Phase 5 – Validation | 19–22 | Có phần Onboarding | [RTM Onboarding](../08-traceability/rtm-onboarding.md), [UAT Onboarding](../07-validation/uat-onboarding.md), [Review log](../07-validation/review-log.md) (mẫu) |
 | Phase 6 – Portfolio | 23–24 | Chưa bắt đầu | |
 | Ngoài roadmap BA – Lập trình MVP | – | Tùy chọn, sau khi portfolio có thể gửi đi | [09-implementation](../09-implementation/) |
 
 Tài liệu dùng chung: [Open Questions Log](../01-discovery/open-questions-log.md).
 
-## 2. Thứ tự thực hiện sau điều chỉnh
+## 2. Thứ tự thực hiện
 
-Thứ tự giai đoạn của roadmap gốc giữ nguyên. Thay đổi nằm ở cách thực hiện: hoàn thành trọn chuỗi sản phẩm cho **Onboarding** trước, rồi mới mở rộng sang hai quy trình còn lại.
+Mỗi quy trình đi qua cùng một chuỗi: chốt câu hỏi mở → BRD → Use Case → User Stories/AC → đặc tả màn hình → wireframe Figma → RTM → UAT. Tài liệu cấp hệ thống (ERD, SRS) làm sau khi đủ 3 quy trình.
 
-| Bước | Nội dung | Task gốc liên quan | Kết quả cuối bước | Trạng thái |
-| --- | --- | --- | --- | --- |
-| A | Chốt Onboarding To-Be ở mức nghiệp vụ; tách ghi chú kỹ thuật; gộp Open Questions Log; rút gọn và chuẩn hóa 4 BPMN; xuất lại PNG | 08 | BPMN Onboarding To-Be ổn định | Hoàn thành 22/11/2026 – BA đã kiểm duyệt và thông qua toàn bộ BPMN |
-| B | Lát cắt Onboarding: Business Rules → BRD rút gọn → Use Case + User Stories/AC → Wireframe → RTM → UAT | 09, 10, 11–16, 17–18, 19–22 (phần Onboarding) | Một bộ hồ sơ hoàn chỉnh cho một quy trình | Đang làm – đã có Business Rules, BRD, Use Case, User Stories/AC; tiếp theo là Wireframe |
-| C | Viết case study một trang và README portfolio; có thể thêm bản tóm tắt tiếng Anh (RM-08); **bắt đầu nộp CV** | 23–24 | Portfolio có thể gửi đi | Chưa bắt đầu |
-| D | Mở rộng sang Access Request và Offboarding: To-Be ở mức nghiệp vụ, tái sử dụng khung từ bước B | 08, 09–22 (phần còn lại) | Hồ sơ phủ 3 quy trình | Đã làm sớm phần BPMN To-Be (BPMN-05, BPMN-06); phần còn lại chưa bắt đầu |
-| E | Hoàn thiện SRS, ERD, sơ đồ bổ sung; review với ít nhất một người thật (RM-07) | 11–16, 19–22 | Hồ sơ đầy đủ, có bằng chứng review | Chưa bắt đầu |
-| F | (Tùy chọn) Lập trình MVP | Ngoài roadmap BA | Bản demo phần mềm | Tùy chọn |
+| Bước | Nội dung | Kết quả cuối bước | Trạng thái |
+| --- | --- | --- | --- |
+| A | Chốt BPMN To-Be cả 3 quy trình ở mức nghiệp vụ | BPMN To-Be ổn định | Hoàn thành 22/11/2026 |
+| B | Onboarding: Business Rules → BRD → Use Case → User Stories/AC → Wireframe → RTM → UAT | Bộ hồ sơ Onboarding | Xong bản nháp 26/11/2026 |
+| D1 | Access Request: cùng chuỗi như bước B | Bộ hồ sơ Access Request | Đang làm |
+| D2 | Offboarding: cùng chuỗi như bước B | Bộ hồ sơ Offboarding | Chưa bắt đầu |
+| E | Cấp hệ thống: sơ đồ ngữ cảnh, ERD và từ điển dữ liệu, SRS, RTM tổng | Hồ sơ toàn hệ thống | Chưa bắt đầu |
+| F | Review với ít nhất một người thật; README portfolio, case study; nộp CV | Portfolio hoàn chỉnh | Chưa bắt đầu |
+| G | (Tùy chọn) Lập trình MVP | Bản demo phần mềm | Tùy chọn |
 
 ## 3. Nguyên tắc giới hạn phạm vi
 

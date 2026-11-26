@@ -7,3 +7,5 @@ Kịch bản UAT cần tham chiếu yêu cầu hoặc acceptance criteria, có �
 Theo dõi cả luồng thành công, ngoại lệ, quyền truy cập và hành vi ảnh hưởng tới dữ liệu trong phạm vi. Việc chuẩn bị kịch bản không đồng nghĩa với việc đã kiểm thử hoặc nghiệm thu.
 
 Góp ý từ người review thật và cách xử lý được ghi tại [Review Log](review-log.md).
+
+- [Kịch bản UAT Onboarding](uat-onboarding.md)

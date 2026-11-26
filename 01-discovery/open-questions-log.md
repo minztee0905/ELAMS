@@ -75,6 +75,9 @@ Vì toàn bộ stakeholder của dự án là giả lập, chưa câu hỏi nào
 | Q-19 | Nhân viên mới có cần xác nhận nhận thiết bị không? | HR, IT | Sub_Devices | Có giả định | To-Be hiện đề xuất Employee xác nhận bằng biên bản (D06). |
 | Q-20 | Ai có quyền khởi tạo yêu cầu onboarding và offboarding? | HR, Project Sponsor | Phân quyền theo vai trò | Có giả định | Giả định hiện tại: HR khởi tạo (RACI). |
 | Q-21 | Ai có quyền thay đổi người phụ trách nhiệm vụ? | HR, Manager | Task Management | Mở | |
+| Q-38 | Nhận diện "cùng một nhân viên" khi kiểm tra trùng yêu cầu onboarding bằng gì (email cá nhân, số CCCD, mã ứng viên)? | HR | Onboarding (SCR-ON-01, UC-ON-01 EF-03), BR-ON-11 | Có giả định | Giả định hiện tại: email cá nhân. Phát sinh khi đặc tả màn hình ngày 26/11/2026. |
+| Q-39 | HR có được xóa một quyền bắt buộc theo mẫu vị trí khỏi yêu cầu onboarding không? | HR, Manager, Security Approver | Onboarding (SCR-ON-01), BR-ON-01, Q-08 | Có giả định | Giả định hiện tại: không được xóa, tương tự không được đổi sang không bắt buộc. Phát sinh khi đặc tả màn hình ngày 26/11/2026. |
+| Q-40 | Manager có phải ghi lý do nghiệp vụ khi phê duyệt quyền nhạy cảm để Security tham khảo không? | Manager, Security Approver | Onboarding (SCR-ON-03, UC-ON-04), US-ON-07 AC-1 | Có giả định | Giả định hiện tại: không bắt buộc. Phát sinh khi đặc tả màn hình ngày 26/11/2026. |
 
 ### 3.4. Offboarding và thiết bị
 

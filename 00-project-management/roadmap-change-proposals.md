@@ -160,4 +160,4 @@ Sau khi rà soát độ phức tạp của bốn sơ đồ BPMN, BA yêu cầu r
 | BPMN-05 | Tạo To-Be Access Request ở mức nghiệp vụ (đưa phần BPMN của bước D lên sớm theo yêu cầu của BA) | Đã thực hiện: 8 task, 5 gateway, 20 luồng; thống nhất logic với Sub_Access của Onboarding | [to-be-access-request-approval.bpmn](../03-process-models/to-be/access-request/to-be-access-request-approval.bpmn), [design decisions](../02-requirements/design-decisions/access-request-to-be-design-decisions.md) |
 | BPMN-06 | Tạo To-Be Offboarding ở mức nghiệp vụ | Đã thực hiện: 17 task, 8 gateway, 43 luồng; 3 nhánh con và event subprocess đổi ngày | [to-be-offboarding.bpmn](../03-process-models/to-be/offboarding/to-be-offboarding.bpmn), [design decisions](../02-requirements/design-decisions/offboarding-to-be-design-decisions.md) |
 
-Bản trước khi rút gọn lưu tại `99-archive/process-models-before-simplification/`. Toàn bộ PNG đã được xoá theo yêu cầu của BA; BA sẽ xuất lại.
+Bản trước khi rút gọn có trong lịch sử Git. Toàn bộ PNG đã được xoá theo yêu cầu của BA; BA sẽ xuất lại.

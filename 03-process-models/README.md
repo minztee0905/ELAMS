@@ -39,6 +39,6 @@ BPMN ở đây là tài liệu BA. Mô hình Camunda thực thi sẽ được ph
 | To-Be Access Request | – (tạo mới) | 8 task, 5 gateway, 20 luồng |
 | To-Be Offboarding | – (tạo mới) | 17 task, 8 gateway, 43 luồng |
 
-Bản trước khi rút gọn: [99-archive/process-models-before-simplification](../99-archive/process-models-before-simplification/). PNG cũ đã được xoá ngày 21/11/2026; BA xuất lại từ Camunda Modeler. Hai To-Be Access Request và Offboarding tạo ngày 21/11/2026 chưa có PNG.
+Bản trước khi rút gọn có trong lịch sử Git.
 
 Quy tắc đi kèm To-Be: [Onboarding](../02-requirements/design-decisions/onboarding-to-be-design-decisions.md), [Access Request](../02-requirements/design-decisions/access-request-to-be-design-decisions.md), [Offboarding](../02-requirements/design-decisions/offboarding-to-be-design-decisions.md).
