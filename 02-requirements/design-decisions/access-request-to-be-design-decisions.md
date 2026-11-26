@@ -40,6 +40,7 @@ Phát biểu chính thức, loại, nguồn, trạng thái và câu hỏi mở c
 | BR-AC-04 | IT chỉ nhận việc khi đủ phê duyệt | I01 |
 | BR-AC-05 | Chỉ đóng Đã cấp khi kết quả được ghi nhận | S02 |
 | BR-AC-06 | Không tự phê duyệt yêu cầu của mình | M01 |
+| BR-AC-07 | Không gửi trùng yêu cầu cho cùng quyền | R01 |
 
 ## 3. Trạng thái yêu cầu
 

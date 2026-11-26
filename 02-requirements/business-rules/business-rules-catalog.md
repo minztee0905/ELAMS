@@ -4,9 +4,11 @@
 
 **Doanh nghiệp:** TechNova (Giả định)
 
-**Phiên bản:** 0.3 – Bản nháp
+**Phiên bản:** 0.4 – Bản nháp
 
 **Ngày tạo:** 22/11/2026
+
+**Thay đổi bản 0.4:** Thêm BR-AC-07; BR-AC-06 ghi giả định người duyệt thay (Q-35).
 
 **Thay đổi bản 0.3:** Thêm BR-ON-12 (phát sinh khi review UC-ON-05).
 
@@ -69,11 +71,11 @@ Toàn bộ catalog là giả lập; không quy tắc nào được coi là chín
 | --- | --- | --- | --- | --- | --- | --- |
 | BR-GEN | 3 | 3 | 0 | 2 | 0 | 1 |
 | BR-ON | 12 | 10 | 2 | 2 | 4 | 6 |
-| BR-AC | 6 | 6 | 0 | 3 | 2 | 1 |
+| BR-AC | 7 | 7 | 0 | 3 | 2 | 2 |
 | BR-OFF | 8 | 7 | 1 | 1 | 1 | 6 |
-| **Tổng** | **29** | **26** | **3** | **8** | **7** | **14** |
+| **Tổng** | **30** | **27** | **3** | **8** | **7** | **15** |
 
-Gần một nửa số quy tắc (14/29) đang chờ xác nhận. Đây là danh sách ưu tiên khi có buổi review với stakeholder (RM-07).
+Một nửa số quy tắc (15/30) đang chờ xác nhận. Đây là danh sách ưu tiên khi có buổi review với stakeholder (RM-07).
 
 ---
 
@@ -111,19 +113,20 @@ Gần một nửa số quy tắc (14/29) đang chờ xác nhận. Đây là danh
 | BR-AC-03 | Mức nhạy cảm của quyền và cấp phê duyệt cần thiết được suy ra từ danh mục quyền, không do người duyệt tự xác định. Quyền nhạy cảm cần Manager duyệt trước, Security duyệt sau. Giả định: quyền dữ liệu tài chính và quyền quản trị hệ thống là nhạy cảm. | Suy diễn | REQ-009, GAP-AC-03, GAP-AC-04 | S01, SG01, SE01 | Security Approver | Must | Chờ xác nhận | Q-06, Q-07 |
 | BR-AC-04 | IT chỉ nhận nhiệm vụ cấp quyền khi yêu cầu đã đủ mọi phê duyệt bắt buộc. Không cấp quyền trước khi được duyệt. | Ràng buộc | REQ-005, GAP-AC-05, KPI-03 | I01 | Security Approver | Must | Có cơ sở | Q-15 (đã có giả định) |
 | BR-AC-05 | Yêu cầu chỉ đóng ở trạng thái Đã cấp khi kết quả cấp quyền đã được IT ghi nhận thành công. Lỗi cấp quyền giữ yêu cầu ở trạng thái Chờ cấp quyền. | Ràng buộc | GAP-AC-06 | IG01, I02, S02 | IT | Must | Đề xuất | – |
-| BR-AC-06 | Người yêu cầu không được tự phê duyệt yêu cầu của chính mình. | Phân quyền | Thiết kế BA | M01 | Manager, Security Approver | Must | Đề xuất | Q-35 |
+| BR-AC-06 | Người yêu cầu không được tự phê duyệt yêu cầu của chính mình. Khi người yêu cầu là Manager, cấp trên trực tiếp của Manager duyệt thay (giả định). | Phân quyền | Thiết kế BA | M01 | Manager, Security Approver | Must | Đề xuất | Q-35 (đã có giả định) |
+| BR-AC-07 | Không được gửi yêu cầu mới cho một quyền khi nhân viên đang có yêu cầu chưa kết thúc cho cùng quyền đó. Nếu nhân viên đã có quyền này, hệ thống cảnh báo nhưng vẫn cho gửi. | Ràng buộc | Thiết kế BA | R01 | IT | Must | Chờ xác nhận | Q-43 |
 
 ## 7. BR-OFF – Employee Offboarding
 
 | Mã | Quy tắc | Loại | Nguồn | Vị trí BPMN | Chủ sở hữu chính sách | Ưu tiên | Trạng thái | Câu hỏi mở |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BR-OFF-01 | Yêu cầu offboarding phải có: nhân viên, ngày nghỉ việc, lý do, nghỉ việc đột xuất hay không. | Ràng buộc | GAP-OFF-01 | H01 | HR | Must | Đề xuất | – |
-| BR-OFF-02 | Danh sách quyền và thiết bị cần thu hồi được lập từ lịch sử cấp quyền và cấp phát thiết bị của nhân viên. Mỗi mục thu hồi tạo nhiệm vụ theo BR-GEN-01. | Suy diễn | GAP-OFF-02, GAP-OFF-03 | S01 | IT | Must | Chờ xác nhận | Q-28 |
-| BR-OFF-03 | Quyền được thu hồi tại thời điểm tính theo ngày nghỉ việc hiện hành. Yêu cầu được đánh dấu đột xuất khi tạo thì thu hồi ngay. | Điều kiện kích hoạt | GAP-OFF-02, KPI-04 | Sub_Revoke: V_Timer, V01 | Security Approver | Must | Chờ xác nhận | Q-25 |
-| BR-OFF-04 | Khi yêu cầu được chuyển sang đột xuất trong lúc quy trình đang chạy, việc thu hồi quyền bắt đầu ngay, không chờ ngày nghỉ việc, và có hạn xử lý ngắn hơn. | Điều kiện kích hoạt | GAP-OFF-07 | Sub_Revoke: V_Urgent, V01 | Security Approver | Must | Chờ xác nhận | Q-26 |
-| BR-OFF-05 | Thu hồi quyền không có ngoại lệ được duyệt: mọi quyền trong danh sách phải ở trạng thái đã thu hồi hoặc đã vô hiệu hóa. Tài khoản chưa thu hồi được phải tiếp tục xử lý và báo Security nếu quá hạn. | Ràng buộc | GAP-OFF-04, KPI-04 | Sub_Revoke: V02, VG01, V03 | Security Approver | Must | Chờ xác nhận | Q-27 |
-| BR-OFF-06 | Thiết bị chưa hoàn trả chỉ được đóng theo ngoại lệ khi có lý do, bằng chứng và quyết định duyệt của người có thẩm quyền (giả định: Manager). Thiết bị đóng theo ngoại lệ vẫn được theo dõi riêng. | Ràng buộc | GAP-OFF-05, KPI-05 | Sub_Devices: D03, D04, DG02 | HR, Manager | Must | Chờ xác nhận | Q-22 (đã có giả định), Q-23, Q-34 |
-| BR-OFF-07 | Khi đổi ngày nghỉ việc, hạn nhiệm vụ chưa hoàn thành và thời điểm thu hồi quyền được tính lại. Nhiệm vụ đã hoàn thành không mở lại; quyền đã thu hồi không được cấp lại chỉ vì đổi ngày. | Suy diễn | GAP-OFF-06 | Sub_DateChange: C02 | HR | Should | Chờ xác nhận | Q-04 |
+| BR-OFF-02 | Danh sách quyền và thiết bị cần thu hồi được lập từ lịch sử cấp quyền (Onboarding và Access Request) và cấp phát thiết bị của nhân viên; IT bổ sung quyền cấp ngoài ELAMS. Mỗi mục thu hồi tạo nhiệm vụ theo BR-GEN-01. | Suy diễn | GAP-OFF-02, GAP-OFF-03 | S01 | IT | Must | Chờ xác nhận | Q-28, Q-45 (đã có giả định) |
+| BR-OFF-03 | Quyền được thu hồi lúc 18:00 ngày nghỉ việc hiện hành (giả định). Yêu cầu được đánh dấu đột xuất khi tạo thì thu hồi ngay. | Điều kiện kích hoạt | GAP-OFF-02, KPI-04 | Sub_Revoke: V_Timer, V01 | Security Approver | Must | Chờ xác nhận | Q-25 (đã có giả định) |
+| BR-OFF-04 | Khi yêu cầu được chuyển sang đột xuất trong lúc quy trình đang chạy, việc thu hồi quyền bắt đầu ngay, không chờ ngày nghỉ việc, và phải hoàn thành trong 4 giờ (giả định). | Điều kiện kích hoạt | GAP-OFF-07 | Sub_Revoke: V_Urgent, V01 | Security Approver | Must | Chờ xác nhận | Q-26 (đã có giả định) |
+| BR-OFF-05 | Thu hồi quyền không có ngoại lệ được duyệt: mọi quyền trong danh sách phải ở trạng thái đã thu hồi hoặc đã vô hiệu hóa. Tài khoản chưa thu hồi được phải tiếp tục xử lý và báo Security nếu quá hạn. | Ràng buộc | GAP-OFF-04, KPI-04 | Sub_Revoke: V02, VG01, V03 | Security Approver | Must | Chờ xác nhận | Q-27 (đã có giả định) |
+| BR-OFF-06 | Thiết bị chưa hoàn trả chỉ được đóng theo ngoại lệ khi có lý do, bằng chứng và quyết định duyệt của người có thẩm quyền (giả định: Manager). Thiết bị đóng theo ngoại lệ vẫn được theo dõi riêng. | Ràng buộc | GAP-OFF-05, KPI-05 | Sub_Devices: D03, D04, DG02 | HR, Manager | Must | Chờ xác nhận | Q-22, Q-23, Q-34 (đã có giả định) |
+| BR-OFF-07 | Khi đổi ngày nghỉ việc, hạn nhiệm vụ chưa hoàn thành và thời điểm thu hồi quyền được tính lại. Nhiệm vụ đã hoàn thành không mở lại; quyền đã thu hồi không được cấp lại chỉ vì đổi ngày. | Suy diễn | GAP-OFF-06 | Sub_DateChange: C02 | HR | Should | Chờ xác nhận | Q-04 (đã có giả định) |
 | BR-OFF-08 | Offboarding chỉ được đóng khi: mọi quyền đã thu hồi; Manager đã xác nhận bàn giao; mọi thiết bị đã thu hồi hoặc có ngoại lệ được duyệt. HR xác nhận không thay thế được các kiểm tra này. | Ràng buộc | REQ-003, GAP-OFF-04 | S02, G01, H03 | HR | Must | Có cơ sở | Q-24 (đã có giả định) |
 
 ---
@@ -157,9 +160,10 @@ Khi một câu hỏi được trả lời, cập nhật các quy tắc tương �
 | Q-25 | BR-OFF-03 |
 | Q-26 | BR-OFF-04 |
 | Q-27 | BR-OFF-05 |
-| Q-28 | BR-OFF-02 |
+| Q-28, Q-45 | BR-OFF-02 |
 | Q-29, Q-30 | BR-GEN-03 |
 | Q-35 | BR-AC-06 |
+| Q-43 | BR-AC-07 |
 | Q-37 | BR-ON-12 |
 
 ## 10. Cách cập nhật

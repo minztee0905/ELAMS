@@ -9,3 +9,5 @@ Theo dõi cả luồng thành công, ngoại lệ, quyền truy cập và hành 
 Góp ý từ người review thật và cách xử lý được ghi tại [Review Log](review-log.md).
 
 - [Kịch bản UAT Onboarding](uat-onboarding.md)
+- [Kịch bản UAT Access Request](uat-access-request.md)
+- [Kịch bản UAT Offboarding](uat-offboarding.md)

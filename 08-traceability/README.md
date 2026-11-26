@@ -7,3 +7,5 @@ Bắt đầu lập ma trận khi có yêu cầu đầu tiên và cập nhật th
 Các trường dự kiến: mã yêu cầu, nguồn, mục tiêu liên quan, ưu tiên, trạng thái, mã đầu ra liên quan và điểm còn thiếu cần xử lý. Ma trận hỗ trợ rà soát độ bao phủ và đánh giá tác động khi có thay đổi.
 
 - [RTM Onboarding](rtm-onboarding.md)
+- [RTM Access Request](rtm-access-request.md)
+- [RTM Offboarding](rtm-offboarding.md)

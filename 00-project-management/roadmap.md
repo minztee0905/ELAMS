@@ -39,9 +39,9 @@ Mỗi quy trình đi qua cùng một chuỗi: chốt câu hỏi mở → BRD →
 | --- | --- | --- | --- |
 | A | Chốt BPMN To-Be cả 3 quy trình ở mức nghiệp vụ | BPMN To-Be ổn định | Hoàn thành 22/11/2026 |
 | B | Onboarding: Business Rules → BRD → Use Case → User Stories/AC → Wireframe → RTM → UAT | Bộ hồ sơ Onboarding | Xong bản nháp 26/11/2026 |
-| D1 | Access Request: cùng chuỗi như bước B | Bộ hồ sơ Access Request | Đang làm |
-| D2 | Offboarding: cùng chuỗi như bước B | Bộ hồ sơ Offboarding | Chưa bắt đầu |
-| E | Cấp hệ thống: sơ đồ ngữ cảnh, ERD và từ điển dữ liệu, SRS, RTM tổng | Hồ sơ toàn hệ thống | Chưa bắt đầu |
+| D1 | Access Request: cùng chuỗi như bước B | Bộ hồ sơ Access Request | Xong bản nháp 26/11/2026 |
+| D2 | Offboarding: cùng chuỗi như bước B | Bộ hồ sơ Offboarding | Xong bản nháp 26/11/2026 |
+| E | Cấp hệ thống: sơ đồ ngữ cảnh, ERD và từ điển dữ liệu, SRS, RTM tổng | Hồ sơ toàn hệ thống | Đang làm |
 | F | Review với ít nhất một người thật; README portfolio, case study; nộp CV | Portfolio hoàn chỉnh | Chưa bắt đầu |
 | G | (Tùy chọn) Lập trình MVP | Bản demo phần mềm | Tùy chọn |
 

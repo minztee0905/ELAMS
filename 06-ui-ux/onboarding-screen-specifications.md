@@ -614,7 +614,7 @@ Việc cần làm > Cấp thiết bị · Nguyễn Văn An
 | # | Trường | Kiểu | Bắt buộc | Kiểm tra hợp lệ / Hành vi | AC |
 | --- | --- | --- | --- | --- | --- |
 | D1 | Tình trạng kho | Lựa chọn Có thiết bị phù hợp / Thiếu thiết bị | Có | Hiện nhóm trường tương ứng | UC-ON-06 bước 1, AF-01 |
-| D2 | Mã thiết bị | Văn bản (hoặc chọn từ kho, chờ Q-28) | Có khi bàn giao | Không trùng thiết bị đang gắn với người khác (đề xuất) | US-ON-10 AC-1 |
+| D2 | Mã thiết bị | Chọn từ danh sách tài sản trong kho (Q-28) | Có khi bàn giao | Không trùng thiết bị đang gắn với người khác (đề xuất) | US-ON-10 AC-1 |
 | D3 | Thời gian bàn giao | Ngày giờ | Có khi bàn giao | Không sau thời điểm hiện tại | US-ON-10 AC-1 |
 | D4 | Tình trạng thiết bị | Danh sách chọn: Mới / Đã qua sử dụng – tốt / Đã qua sử dụng – có lưu ý | Có khi bàn giao | Chọn "có lưu ý" thì bắt buộc nhập mô tả | US-ON-10 AC-1 |
 | D5 | Mã biên bản | Văn bản | Có khi bàn giao | – | US-ON-10 AC-1 |
@@ -678,7 +678,7 @@ Cả 56 AC đều gắn với ít nhất một màn hình. Bảng này là đầ
 | Q-01 | Ngưỡng "Sắp đến hạn" | SCR-ON-03 nhãn Sắp đến hạn | Mở |
 | Q-03 | Chính sách ngày bắt đầu tối thiểu và cách tính hạn mới | SCR-ON-01 B1, SCR-ON-02 hộp thoại đổi ngày | Mở |
 | Q-17 | Mẫu nhiệm vụ khi khởi tạo | SCR-ON-01 trang kết quả | Mở |
-| Q-28 | Thiết bị quản lý theo danh mục hay từng tài sản | SCR-ON-05 trường mã thiết bị | Mở |
+| Q-28 | Thiết bị quản lý theo danh mục hay từng tài sản | SCR-ON-05 trường mã thiết bị | Có giả định: theo từng tài sản |
 | Q-30 | Vai trò xem lịch sử thao tác | SCR-ON-02 thẻ Lịch sử | Có giả định |
 | Q-33 | Phạm vi xem yêu cầu của Manager, IT | Ma trận mục 2.5 | Mở |
 | Q-37 | Khi nào phê duyệt không còn hiệu lực | SCR-ON-04 khung thu hồi | Mở |

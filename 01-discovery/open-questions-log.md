@@ -44,7 +44,7 @@ Vì toàn bộ stakeholder của dự án là giả lập, chưa câu hỏi nào
 | Q-01 | SLA được tính theo giờ làm việc hay thời gian liên tục? Nhiệm vụ quá hạn được xử lý thế nào? | HR, IT | Task & SLA, KPI-01, KPI-02, KPI-04 | Mở | |
 | Q-02 | Ai được phép thay đổi thời hạn xử lý nhiệm vụ? | HR, Manager | Task & SLA, Audit Log | Mở | |
 | Q-03 | Hạn của từng loại nhiệm vụ onboarding phụ thuộc ngày bắt đầu như thế nào? Khi đổi ngày, những nhiệm vụ đang xử lý nào chịu tác động? | HR, IT | Onboarding (Sub_DateChange), BR-ON-04 | Mở | |
-| Q-04 | Khi ngày nghỉ việc thay đổi, những nhiệm vụ nào bị ảnh hưởng và hạn được tính lại thế nào? | HR, IT | Offboarding | Mở | |
+| Q-04 | Khi ngày nghỉ việc thay đổi, những nhiệm vụ nào bị ảnh hưởng và hạn được tính lại thế nào? | HR, IT | Offboarding | Có giả định | Giả định: hạn bàn giao và thu hồi thiết bị bằng ngày nghỉ việc mới; thời điểm thu hồi quyền là 18:00 ngày mới; việc đã xong không mở lại (chốt 26/11/2026). |
 | Q-05 | Khi nhiệm vụ hoặc yêu cầu phê duyệt quá hạn, hệ thống thông báo cho ai? Có cần chuyển cấp xử lý (escalation) không? | HR, Manager, IT | Thông báo (F-13), Escalation (F-17) | Mở | Liên quan câu hỏi phỏng vấn MGR-Q10. |
 
 ### 3.2. Quyền truy cập và phê duyệt
@@ -52,19 +52,22 @@ Vì toàn bộ stakeholder của dự án là giả lập, chưa câu hỏi nào
 | Mã | Câu hỏi | Stakeholder cần xác nhận | Ảnh hưởng | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- | --- |
 | Q-06 | Tiêu chí phân loại quyền nhạy cảm là gì? Quyền nào chỉ cần Manager duyệt, quyền nào cần thêm Security Approver? | Security Approver | Access Request, Sub_Access (A05, AG02) | Có giả định | Giả lập SEC-Q02: quyền dữ liệu tài chính và quyền quản trị hệ thống cần Security duyệt sau Manager. Chưa có danh mục đầy đủ. |
-| Q-07 | Ai phân loại quyền và quản lý danh mục quyền nhạy cảm? | Security Approver, System Administrator | Danh mục quyền, Access Request | Mở | |
+| Q-07 | Ai phân loại quyền và quản lý danh mục quyền nhạy cảm? | Security Approver, System Administrator | Danh mục quyền, Access Request | Có giả định | Giả định: System Administrator cập nhật danh mục theo đề xuất của Security Approver (chốt 26/11/2026). |
 | Q-08 | Ai có thẩm quyền xác định và thay đổi danh sách quyền bắt buộc theo vị trí? | Manager, Security Approver | Onboarding, BR-ON-01 | Mở | |
 | Q-09 | Có được cấp một phần quyền khi các quyền khác đang chờ duyệt không? Thứ tự xử lý các quyền được chốt thế nào? | Manager, IT | Sub_Access, BR-ON-09 | Có giả định | To-Be hiện xử lý tuần tự: quyền sau phải chờ quyền trước kết thúc. |
 | Q-10 | Nếu tất cả quyền bị từ chối đều là quyền không bắt buộc, kết quả nhóm REJECTED có được chấp nhận không? Có cần Manager xác nhận thêm không? | Manager | Sub_Access, BR-ON-02 | Mở | |
 | Q-11 | Trạng thái BLOCKED của một quyền được hiển thị thế nào ở cấp yêu cầu onboarding? Điều kiện cụ thể để tiếp tục xử lý là gì? | HR, IT | Sub_Access, màn hình theo dõi | Mở | |
-| Q-12 | Có cho phép sửa yêu cầu sau khi đã gửi phê duyệt không? | Manager, Security Approver | Access Request | Mở | |
+| Q-12 | Có cho phép sửa yêu cầu sau khi đã gửi phê duyệt không? | Manager, Security Approver | Access Request | Có giả định | Giả định: không sửa sau khi gửi; chỉ sửa hoặc hủy khi yêu cầu ở trạng thái Chờ bổ sung (chốt 26/11/2026). |
 | Q-13 | Khi ủy quyền phê duyệt, ai được phép chỉ định người thay thế? Phạm vi và thời hạn ủy quyền thế nào? | Manager, System Administrator | Ủy quyền phê duyệt (F-16) | Mở | Liên quan REQ-008. |
 | Q-14 | Quyền truy cập tạm thời có cần ngày hết hạn không? | Security Approver | Quyền tạm thời (Could Have) | Mở | |
 | Q-15 | IT có được cấp quyền trước khi yêu cầu được phê duyệt không? | IT, Security Approver | Access Request, KPI-03 | Có giả định | Giả lập IT-Q12: không được. Đã phản ánh trong REQ-005 và To-Be (A08). |
 | Q-16 | Quy tắc khi hủy onboarding, hoặc khi cần cấp lại quyền sau khi item quyền đã kết thúc là gì? | HR, Manager, IT | Onboarding, Sub_Access | Mở | |
-| Q-35 | Khi Manager là người yêu cầu quyền cho chính mình, ai phê duyệt thay (cấp trên, Security)? | Manager, Security Approver | Access Request To-Be (M01), BR-AC-06 | Mở | Phát sinh khi thiết kế Access Request To-Be ngày 21/11/2026. |
+| Q-35 | Khi Manager là người yêu cầu quyền cho chính mình, ai phê duyệt thay (cấp trên, Security)? | Manager, Security Approver | Access Request To-Be (M01), BR-AC-06 | Có giả định | Giả định: cấp trên trực tiếp của Manager duyệt thay (chốt 26/11/2026). |
 | Q-36 | Security Approver có được yêu cầu bổ sung thông tin hay chỉ duyệt/từ chối? | Security Approver | Access Request To-Be (SE01) | Có giả định | To-Be hiện chỉ cho Security duyệt hoặc từ chối. |
 | Q-37 | Khi nào một phê duyệt quyền được coi là không còn hiệu lực (người duyệt rút lại, nội dung quyền thay đổi sau khi duyệt, quá thời hạn hiệu lực)? | Security Approver, Manager | Onboarding (UC-ON-05 EF-03, A11), BR-ON-12 | Mở | Phát sinh khi review Use Case ngày 22/11/2026. |
+| Q-41 | Ai được gửi yêu cầu cấp quyền: nhân viên tự yêu cầu cho mình, hay Manager/HR yêu cầu thay? | Manager, Security Approver | Access Request (actor, R01) | Có giả định | Giả định: mọi nhân viên có tài khoản ELAMS, chỉ yêu cầu cho chính mình. Phát sinh khi chuẩn bị BRD Access Request ngày 26/11/2026. |
+| Q-42 | Một yêu cầu cấp quyền được chứa một hay nhiều quyền? | IT, Security Approver | Access Request (R01, BPMN, dữ liệu) | Có giả định | Giả định: mỗi yêu cầu một quyền, khớp với BPMN To-Be. Phát sinh ngày 26/11/2026. |
+| Q-43 | Có chặn yêu cầu trùng cho cùng quyền không? Xử lý thế nào khi nhân viên đã có quyền đó? | IT, Security Approver | Access Request (R01), BR-AC-07 | Có giả định | Giả định: chặn khi đang có yêu cầu chưa kết thúc cho cùng quyền; nếu đã có quyền thì cảnh báo nhưng vẫn cho gửi. Phát sinh ngày 26/11/2026. |
 
 ### 3.3. Onboarding
 
@@ -84,13 +87,16 @@ Vì toàn bộ stakeholder của dự án là giả lập, chưa câu hỏi nào
 | Mã | Câu hỏi | Stakeholder cần xác nhận | Ảnh hưởng | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- | --- |
 | Q-22 | Điều kiện nào cho phép đóng offboarding khi thiết bị chưa hoàn trả hoặc còn nghĩa vụ bàn giao? Có biên bản ngoại lệ đã duyệt thì có được đóng không? | HR, Manager, IT | Offboarding, KPI-05 | Có giả định | Giả lập HR-Q14: không đóng khi còn nhiệm vụ bắt buộc, trừ ngoại lệ được duyệt hợp lệ theo chính sách. |
-| Q-23 | Ai có thẩm quyền phê duyệt ngoại lệ thiết bị? | HR, Manager | Offboarding | Mở | |
+| Q-23 | Ai có thẩm quyền phê duyệt ngoại lệ thiết bị? | HR, Manager | Offboarding | Có giả định | Giả định: Manager duyệt, HR được thông báo (chốt 26/11/2026). |
 | Q-24 | Ai xác nhận hoàn tất offboarding? | HR | Offboarding | Có giả định | RACI đề xuất HR là A/R. |
-| Q-25 | Thời điểm thu hồi quyền được xác định theo ngày hay theo giờ cụ thể? | Security Approver, IT | Offboarding, KPI-04 | Mở | |
-| Q-26 | Thu hồi quyền khẩn (nghỉ việc đột xuất) phải hoàn thành trong thời hạn nào? | Security Approver, IT | Offboarding | Mở | |
-| Q-27 | Khi không thể thu hồi tài khoản đúng hạn, ai chịu trách nhiệm xử lý? | IT, Security Approver | Offboarding | Mở | |
-| Q-28 | Hệ thống quản lý thiết bị ở mức danh mục hay theo từng tài sản cụ thể? | IT | IT Asset Management, ERD | Mở | |
-| Q-34 | Thiết bị được đóng theo ngoại lệ đã duyệt có cần tiếp tục theo dõi (bồi hoàn, thu hồi sau) không? Ai theo dõi? | HR, IT, Manager | Offboarding To-Be (Sub_Devices), BR-OFF-06, KPI-05 | Mở | Phát sinh khi thiết kế Offboarding To-Be ngày 21/11/2026. |
+| Q-25 | Thời điểm thu hồi quyền được xác định theo ngày hay theo giờ cụ thể? | Security Approver, IT | Offboarding, KPI-04 | Có giả định | Giả định: theo giờ, 18:00 ngày làm việc cuối cùng; đột xuất thì thu hồi ngay (chốt 26/11/2026). |
+| Q-26 | Thu hồi quyền khẩn (nghỉ việc đột xuất) phải hoàn thành trong thời hạn nào? | Security Approver, IT | Offboarding | Có giả định | Giả định: hoàn thành trong 4 giờ kể từ khi đánh dấu đột xuất (chốt 26/11/2026). |
+| Q-27 | Khi không thể thu hồi tài khoản đúng hạn, ai chịu trách nhiệm xử lý? | IT, Security Approver | Offboarding | Có giả định | Giả định: IT tiếp tục xử lý, Security nhận cảnh báo khi quá hạn; không có ngoại lệ (chốt 26/11/2026). |
+| Q-28 | Hệ thống quản lý thiết bị ở mức danh mục hay theo từng tài sản cụ thể? | IT | IT Asset Management, ERD | Có giả định | Giả định: quản lý theo từng tài sản, mỗi thiết bị có mã riêng (chốt 26/11/2026). |
+| Q-34 | Thiết bị được đóng theo ngoại lệ đã duyệt có cần tiếp tục theo dõi (bồi hoàn, thu hồi sau) không? Ai theo dõi? | HR, IT, Manager | Offboarding To-Be (Sub_Devices), BR-OFF-06, KPI-05 | Có giả định | Giả định: thiết bị mang nhãn "Ngoại lệ – chưa thu hồi" trong danh sách thiết bị; bồi hoàn xử lý ngoài hệ thống (chốt 26/11/2026). |
+| Q-44 | Nhân viên nghỉ việc có thao tác trên ELAMS không? | HR, Manager | Offboarding (Sub_Handover W02) | Có giả định | Giả định: chỉ cập nhật tiến độ bàn giao công việc; nghỉ đột xuất hoặc đã bị thu hồi tài khoản thì Manager cập nhật thay. Phát sinh ngày 26/11/2026. |
+| Q-45 | Danh sách quyền cần thu hồi lấy từ nguồn nào? Quyền cấp ngoài ELAMS xử lý thế nào? | IT, Security Approver | Offboarding (S01), BR-OFF-02 | Có giả định | Giả định: mọi quyền đã cấp qua ELAMS (Onboarding và Access Request); IT bổ sung tay quyền cấp ngoài ELAMS. Phát sinh ngày 26/11/2026. |
+| Q-46 | Có cho phép hủy offboarding khi nhân viên rút đơn nghỉ việc không? | HR | Offboarding | Có giả định | Giả định: ngoài phạm vi, tương tự Q-16. Phát sinh ngày 26/11/2026. |
 
 ### 3.5. Audit Log, KPI và phạm vi xem dữ liệu
 
