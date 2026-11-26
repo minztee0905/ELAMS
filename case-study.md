@@ -12,7 +12,8 @@ TechNova tiếp nhận nhân viên mới, cấp quyền truy cập và xử lý 
 2. **Phân tích quy trình:** vẽ BPMN As-Is cho ba quy trình, rút ra 15 pain point và gap; thiết kế BPMN To-Be ở mức nghiệp vụ.
 3. **Làm trọn một quy trình trước:** đi hết chuỗi cho Onboarding (business rules → BRD → use case → user story → wireframe → RTM → UAT) để có một bộ hồ sơ hoàn chỉnh, rồi dùng lại khung cho Access Request và Offboarding.
 4. **Cấp hệ thống:** ERD logic, từ điển dữ liệu và SRS viết sau khi đủ ba quy trình, để mô hình dữ liệu và phân quyền nhất quán.
-5. **Quản lý điều chưa biết:** mọi câu hỏi chưa có câu trả lời được ghi vào một nhật ký duy nhất với mã Q-xx và giả định rõ ràng, thay vì tự coi là đã chốt.
+5. **Kiểm chứng bằng phần mềm:** hiện thực toàn bộ thiết kế thành ứng dụng web; mỗi kịch bản UAT có kiểm thử tự động tương ứng, nhờ đó phát hiện những chỗ tài liệu còn mơ hồ (ví dụ thế nào là "phê duyệt mất hiệu lực") và chốt thành giả định có ghi chép.
+6. **Quản lý điều chưa biết:** mọi câu hỏi chưa có câu trả lời được ghi vào một nhật ký duy nhất với mã Q-xx và giả định rõ ràng, thay vì tự coi là đã chốt.
 
 ## Ba quyết định phân tích tiêu biểu
 
@@ -40,9 +41,10 @@ Khi mô hình dữ liệu, tôi đặt bảng `access_grant` ở trung tâm: Onb
 | SRS | 58 yêu cầu chức năng, 13 phi chức năng, 4 sơ đồ trạng thái |
 | ERD logic | 23 bảng |
 | Test case UAT | 40, phủ toàn bộ 144 AC |
+| Ứng dụng web | 3 quy trình chạy được; 37 kiểm thử quy tắc nghiệp vụ và 5 kịch bản đầu-cuối tự động |
 
 Mỗi yêu cầu nghiệp vụ truy vết được tới quy tắc, BPMN, use case, user story, màn hình, SRS và UAT ([ví dụ RTM Onboarding](traceability/rtm-onboarding.md)).
 
 ## Giới hạn
 
-Doanh nghiệp, stakeholder và phỏng vấn là giả lập; tài liệu chưa được stakeholder thật xác nhận. Các giả định được ghi rõ trong [nhật ký câu hỏi mở](discovery/open-questions-log.md).
+Doanh nghiệp, stakeholder và phỏng vấn là giả lập; tài liệu chưa được stakeholder thật xác nhận. Ứng dụng chạy trên máy, chưa tích hợp hệ thống đích. Các giả định được ghi rõ trong [nhật ký câu hỏi mở](discovery/open-questions-log.md).

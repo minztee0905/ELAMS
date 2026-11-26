@@ -1,6 +1,6 @@
 # ELAMS – Employee Lifecycle & Access Management System
 
-Dự án phân tích nghiệp vụ cá nhân: thiết kế hệ thống quản lý **vòng đời nhân viên và quyền truy cập** cho TechNova, một công ty công nghệ giả định khoảng 500 nhân viên. Phạm vi gồm ba quy trình **Onboarding**, **Access Request** và **Offboarding**, đi từ khảo sát hiện trạng tới SRS, ERD, wireframe và kịch bản UAT.
+Dự án phân tích nghiệp vụ cá nhân: thiết kế hệ thống quản lý **vòng đời nhân viên và quyền truy cập** cho TechNova, một công ty công nghệ giả định khoảng 500 nhân viên. Phạm vi gồm ba quy trình **Onboarding**, **Access Request** và **Offboarding**, đi từ khảo sát hiện trạng tới SRS, ERD, wireframe và kịch bản UAT, rồi hiện thực thành **ứng dụng web chạy được** để kiểm chứng tài liệu.
 
 **Đọc nhanh trong 5 phút:** [Case study một trang](case-study.md)
 
@@ -45,15 +45,23 @@ Mỗi yêu cầu nghiệp vụ được truy vết tới quy tắc, bước BPMN
 
 ![Wireframe – Chi tiết yêu cầu onboarding](ui-ux/wireframes/onboarding/SCR-ON-02-a-cho-dieu-kien-con-thieu.png)
 
+## Ứng dụng
+
+Từ wireframe và SRS, hệ thống được xây thành ứng dụng web cho cả ba quy trình: 13 màn hình nghiệp vụ, 23 bảng dữ liệu kèm ràng buộc ở mức cơ sở dữ liệu, phân quyền theo ma trận SRS, lịch sử thao tác chỉ thêm mới, và việc định kỳ thu hồi quyền lúc 18:00. Mỗi kịch bản UAT có kiểm thử tự động tương ứng (37 kiểm thử quy tắc nghiệp vụ, 5 kịch bản đầu-cuối trên trình duyệt).
+
+![Ứng dụng – Chi tiết yêu cầu onboarding](implementation/screenshots/app-onboarding-chi-tiet.png)
+
+Next.js · TypeScript · PostgreSQL · Prisma · Tailwind CSS · Vitest · Playwright. Cách chạy, cấu trúc mã và các giả định triển khai: [Ghi chú triển khai](implementation/implementation-notes.md).
+
 ## Giới hạn
 
 - TechNova, stakeholder và dữ liệu là giả định; phỏng vấn được giả lập.
 - Tài liệu chưa được stakeholder thật xác nhận. Các điểm chưa chắc chắn được ghi thành giả định có mã tại [Nhật ký câu hỏi mở](discovery/open-questions-log.md), không được trình bày như sự thật.
-- Chưa có phần mềm chạy được; thư mục [implementation](implementation/) dành cho giai đoạn lập trình tùy chọn.
+- Ứng dụng chạy trên máy, chưa tích hợp hệ thống đích và máy chủ email; đăng nhập là chọn người dùng mẫu.
 
 ## Công cụ
 
-Camunda Modeler (BPMN 2.0) · draw.io (use case, ERD) · Figma (wireframe) · Markdown, Mermaid · Git, GitHub
+Camunda Modeler (BPMN 2.0) · draw.io (use case, ERD) · Figma (wireframe) · Markdown, Mermaid · Next.js, PostgreSQL · Git, GitHub
 
 ## Cấu trúc thư mục
 
@@ -67,10 +75,10 @@ Camunda Modeler (BPMN 2.0) · draw.io (use case, ERD) · Figma (wireframe) · Ma
 | [ui-ux](ui-ux/) | Đặc tả màn hình, wireframe |
 | [validation](validation/) | Kịch bản UAT, review log |
 | [traceability](traceability/) | Ma trận truy vết |
-| [implementation](implementation/) | Ghi chú kỹ thuật, dành cho lập trình |
+| [implementation](implementation/) | Ứng dụng web (`web/`), ghi chú triển khai, ảnh chụp |
 
 ---
 
 ## English summary
 
-ELAMS is a personal Business Analysis project for a fictional 500-employee company. It covers three processes (employee onboarding, access requests and offboarding) from discovery to delivery-ready specifications: As-Is/To-Be BPMN, a business rules catalog, BRDs, use cases, user stories with Given/When/Then acceptance criteria, screen specifications with Figma wireframes, a logical ERD with data dictionary, an SRS, traceability matrices and UAT scripts. Documents are written in Vietnamese with standard English BA terminology.
+ELAMS is a personal Business Analysis project for a fictional 500-employee company. It covers three processes (employee onboarding, access requests and offboarding) from discovery to delivery-ready specifications: As-Is/To-Be BPMN, a business rules catalog, BRDs, use cases, user stories with Given/When/Then acceptance criteria, screen specifications with Figma wireframes, a logical ERD with data dictionary, an SRS, traceability matrices and UAT scripts. The design was then implemented as a working web application (Next.js, PostgreSQL) with automated tests mapped to each UAT case. Documents are written in Vietnamese with standard English BA terminology.

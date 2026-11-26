@@ -27,7 +27,7 @@
 | Phase 4 – UI/UX | 17–18 | Có phần Onboarding | [Đặc tả màn hình Onboarding](../ui-ux/onboarding-screen-specifications.md), [Figma](https://www.figma.com/design/sxQaybHEwuvCMIBTmxwuxE/ELAMS) |
 | Phase 5 – Validation | 19–22 | Có phần Onboarding | [RTM Onboarding](../traceability/rtm-onboarding.md), [UAT Onboarding](../validation/uat-onboarding.md), [Review log](../validation/review-log.md) (mẫu) |
 | Phase 6 – Portfolio | 23–24 | Chưa bắt đầu | |
-| Ngoài roadmap BA – Lập trình MVP | – | Tùy chọn, sau khi portfolio có thể gửi đi | [implementation](../implementation/) |
+| Lập trình ứng dụng | – | Xong | [implementation](../implementation/) |
 
 Tài liệu dùng chung: [Open Questions Log](../discovery/open-questions-log.md).
 
@@ -43,7 +43,7 @@ Mỗi quy trình đi qua cùng một chuỗi: chốt câu hỏi mở → BRD →
 | D2 | Offboarding: cùng chuỗi như bước B | Bộ hồ sơ Offboarding | Xong bản nháp 26/11/2026 |
 | E | Cấp hệ thống: sơ đồ ngữ cảnh, ERD và từ điển dữ liệu, SRS, RTM tổng | Hồ sơ toàn hệ thống | Xong bản nháp 26/11/2026 (sơ đồ ngữ cảnh nằm trong SRS mục 2.1) |
 | F | Review với ít nhất một người thật; README portfolio, case study; nộp CV | Portfolio hoàn chỉnh | Chưa bắt đầu |
-| G | (Tùy chọn) Lập trình MVP | Bản demo phần mềm | Tùy chọn |
+| G | Lập trình ứng dụng cho cả 3 quy trình | Ứng dụng web chạy được, kiểm thử theo UAT | Xong 26/11/2026 ([ghi chú triển khai](../implementation/implementation-notes.md)) |
 
 ## 3. Nguyên tắc giới hạn phạm vi
 
