@@ -1,7 +1,5 @@
 # Mô hình dữ liệu ELAMS
 
-Lưu mô hình dữ liệu khái niệm, ERD logic, data dictionary và trạng thái dữ liệu khi được xác định.
-
-Mỗi thực thể và thuộc tính cần có ý nghĩa nghiệp vụ. Xác định định danh, quan hệ, lực lượng quan hệ, tính bắt buộc, miền giá trị và ràng buộc theo mức chi tiết phù hợp. Nhu cầu lưu lịch sử và vòng đời dữ liệu được đối chiếu với use case và business rules.
-
-Thiết kế cơ sở dữ liệu vật lý và lựa chọn công nghệ cần phối hợp với đội kỹ thuật khi phạm vi yêu cầu đã rõ.
+- ERD logic: [elams-erd.drawio](elams-erd.drawio) – 23 bảng, 4 trang theo nhóm chủ đề
+- Ảnh: [1. Tổ chức, danh mục, cấp phát](elams-erd-1-to-chuc-danh-muc-cap-phat.png) · [2. Onboarding và Access Request](elams-erd-2-onboarding-access-request.png) · [3. Offboarding](elams-erd-3-offboarding.png) · [4. Dùng chung](elams-erd-4-dung-chung.png)
+- Từ điển dữ liệu: [data-dictionary.md](data-dictionary.md)

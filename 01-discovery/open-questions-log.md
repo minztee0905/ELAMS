@@ -97,6 +97,8 @@ Vì toàn bộ stakeholder của dự án là giả lập, chưa câu hỏi nào
 | Q-44 | Nhân viên nghỉ việc có thao tác trên ELAMS không? | HR, Manager | Offboarding (Sub_Handover W02) | Có giả định | Giả định: chỉ cập nhật tiến độ bàn giao công việc; nghỉ đột xuất hoặc đã bị thu hồi tài khoản thì Manager cập nhật thay. Phát sinh ngày 26/11/2026. |
 | Q-45 | Danh sách quyền cần thu hồi lấy từ nguồn nào? Quyền cấp ngoài ELAMS xử lý thế nào? | IT, Security Approver | Offboarding (S01), BR-OFF-02 | Có giả định | Giả định: mọi quyền đã cấp qua ELAMS (Onboarding và Access Request); IT bổ sung tay quyền cấp ngoài ELAMS. Phát sinh ngày 26/11/2026. |
 | Q-46 | Có cho phép hủy offboarding khi nhân viên rút đơn nghỉ việc không? | HR | Offboarding | Có giả định | Giả định: ngoài phạm vi, tương tự Q-16. Phát sinh ngày 26/11/2026. |
+| Q-47 | Tài khoản ELAMS của nhân viên mới được tạo khi nào, bởi ai? | HR, System Administrator | SRS FR-ON-17, phân quyền | Có giả định | Giả định: tự động khi onboarding Hoàn tất, vai trò EMPLOYEE. Phát sinh khi viết SRS ngày 26/11/2026. |
+| Q-48 | Yêu cầu, quyết định và lịch sử thao tác được lưu giữ bao lâu? | Security Approver, HR | SRS mục 6, Audit Log | Có giả định | Giả định: 5 năm sau khi nhân viên nghỉ việc. Phát sinh khi viết SRS ngày 26/11/2026. |
 
 ### 3.5. Audit Log, KPI và phạm vi xem dữ liệu
 

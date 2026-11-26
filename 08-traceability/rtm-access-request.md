@@ -8,23 +8,23 @@
 
 **Người thực hiện:** Business Analyst
 
-**Nguồn:** [BRD](../02-requirements/brd/brd-access-request.md), [Business Rules](../02-requirements/business-rules/business-rules-catalog.md), [BPMN To-Be](../03-process-models/to-be/access-request/to-be-access-request-approval.bpmn), [Use Case](../02-requirements/use-case-specifications/access-request-use-cases.md), [User Stories](../02-requirements/user-stories/access-request-user-stories.md), [Đặc tả màn hình](../06-ui-ux/access-request-screen-specifications.md), [UAT](../07-validation/uat-access-request.md)
+**Nguồn:** [BRD](../02-requirements/brd/brd-access-request.md), [Business Rules](../02-requirements/business-rules/business-rules-catalog.md), [BPMN To-Be](../03-process-models/to-be/access-request/to-be-access-request-approval.bpmn), [Use Case](../02-requirements/use-case-specifications/access-request-use-cases.md), [User Stories](../02-requirements/user-stories/access-request-user-stories.md), [SRS](../02-requirements/srs/srs-elams.md), [Đặc tả màn hình](../06-ui-ux/access-request-screen-specifications.md), [UAT](../07-validation/uat-access-request.md)
 
 ---
 
 ## 1. Yêu cầu nghiệp vụ
 
-| BREQ | Ưu tiên | BG | Quy tắc | BPMN | Use case | User story | Màn hình | UAT |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| BREQ-AC-01 Biểu mẫu chuẩn, chặn trùng | Must | BG-01 | BR-AC-01, BR-AC-07 | R01 | UC-AC-01 | US-AC-01 | SCR-AC-01 | UAT-AC-01, 02, 03 |
-| BREQ-AC-02 Manager xử lý tại Approval Inbox | Must | BG-02 | BR-AC-02, BR-AC-06 | M01, MG01 | UC-AC-04 | US-AC-02, 03, 04 | SCR-ON-03, SCR-AC-03 | UAT-AC-04, 06, 09 |
-| BREQ-AC-03 Bổ sung hoặc hủy, không tự hủy | Must | BG-01 | BR-AC-02 | R02, RG01, E_Cancel | UC-AC-02 | US-AC-05 | SCR-AC-03, 02 | UAT-AC-07 |
-| BREQ-AC-04 Cấp phê duyệt theo danh mục | Must | BG-03 | BR-AC-03 | S01, SG01, SE01, SG02 | UC-AC-04, 05 | US-AC-03, 06 | SCR-AC-01, SCR-ON-03 | UAT-AC-03 |
-| BREQ-AC-05 IT nhận việc khi đủ phê duyệt, không trùng tài khoản | Must | BG-03 | BR-AC-04, BR-ON-10 | I01 | UC-AC-06 | US-AC-07 | SCR-ON-04 | UAT-AC-04, 05 |
-| BREQ-AC-06 Chỉ Đã cấp khi IT ghi nhận thành công | Must | BG-03 | BR-AC-05 | IG01, I02, S02 | UC-AC-06 | US-AC-07, 08 | SCR-ON-04, SCR-AC-03 | UAT-AC-04, 08 |
-| BREQ-AC-07 Theo dõi trạng thái và thông báo | Must | BG-02 | BR-GEN-01 | S02, toàn quy trình | UC-AC-03 | US-AC-09 | SCR-AC-02, 03 | UAT-AC-03, 09 |
-| BREQ-AC-08 Lý do và lịch sử quyết định | Must | BG-05 | BR-GEN-02, BR-GEN-03 | M01, SE01 | UC-AC-04, 05 | US-AC-03, 04, 06 | SCR-ON-03, SCR-AC-03 | UAT-AC-03, 06 |
-| BREQ-AC-09 Cảnh báo quá hạn | Should | BG-02 | BR-GEN-01 | – | UC-AC-07 | US-AC-10 | SCR-ON-03, SCR-AC-02 | UAT-AC-10 |
+| BREQ | Ưu tiên | BG | Quy tắc | BPMN | Use case | User story | Màn hình | SRS | UAT |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BREQ-AC-01 Biểu mẫu chuẩn, chặn trùng | Must | BG-01 | BR-AC-01, BR-AC-07 | R01 | UC-AC-01 | US-AC-01 | SCR-AC-01 | FR-AC-01, 03 | UAT-AC-01, 02, 03 |
+| BREQ-AC-02 Manager xử lý tại Approval Inbox | Must | BG-02 | BR-AC-02, BR-AC-06 | M01, MG01 | UC-AC-04 | US-AC-02, 03, 04 | SCR-ON-03, SCR-AC-03 | FR-AC-02, 04, 05 | UAT-AC-04, 06, 09 |
+| BREQ-AC-03 Bổ sung hoặc hủy, không tự hủy | Must | BG-01 | BR-AC-02 | R02, RG01, E_Cancel | UC-AC-02 | US-AC-05 | SCR-AC-03, 02 | FR-AC-06 | UAT-AC-07 |
+| BREQ-AC-04 Cấp phê duyệt theo danh mục | Must | BG-03 | BR-AC-03 | S01, SG01, SE01, SG02 | UC-AC-04, 05 | US-AC-03, 06 | SCR-AC-01, SCR-ON-03 | FR-AC-07 | UAT-AC-03 |
+| BREQ-AC-05 IT nhận việc khi đủ phê duyệt, không trùng tài khoản | Must | BG-03 | BR-AC-04, BR-ON-10 | I01 | UC-AC-06 | US-AC-07 | SCR-ON-04 | FR-AC-08; FR-GEN-15 | UAT-AC-04, 05 |
+| BREQ-AC-06 Chỉ Đã cấp khi IT ghi nhận thành công | Must | BG-03 | BR-AC-05 | IG01, I02, S02 | UC-AC-06 | US-AC-07, 08 | SCR-ON-04, SCR-AC-03 | FR-AC-09 | UAT-AC-04, 08 |
+| BREQ-AC-07 Theo dõi trạng thái và thông báo | Must | BG-02 | BR-GEN-01 | S02, toàn quy trình | UC-AC-03 | US-AC-09 | SCR-AC-02, 03 | FR-AC-10; FR-GEN-05 | UAT-AC-03, 09 |
+| BREQ-AC-08 Lý do và lịch sử quyết định | Must | BG-05 | BR-GEN-02, BR-GEN-03 | M01, SE01 | UC-AC-04, 05 | US-AC-03, 04, 06 | SCR-ON-03, SCR-AC-03 | FR-GEN-08, 09 | UAT-AC-03, 06 |
+| BREQ-AC-09 Cảnh báo quá hạn | Should | BG-02 | BR-GEN-01 | – | UC-AC-07 | US-AC-10 | SCR-ON-03, SCR-AC-02 | FR-GEN-06 | UAT-AC-10 |
 
 ## 2. Ràng buộc chất lượng
 
