@@ -1,48 +1,76 @@
-# ELAMS
+# ELAMS – Employee Lifecycle & Access Management System
 
-**Employee Lifecycle & Access Management System**
+Dự án phân tích nghiệp vụ cá nhân: thiết kế hệ thống quản lý **vòng đời nhân viên và quyền truy cập** cho TechNova, một công ty công nghệ giả định khoảng 500 nhân viên. Phạm vi gồm ba quy trình **Onboarding**, **Access Request** và **Offboarding**, đi từ khảo sát hiện trạng tới SRS, ERD, wireframe và kịch bản UAT.
 
-ELAMS quản lý vòng đời nhân viên và quyền truy cập, tập trung vào onboarding, offboarding, phê duyệt quyền, nhiệm vụ và bàn giao thiết bị. Dự án có hai mục tiêu: xây dựng portfolio ứng tuyển Business Analyst Intern và phát triển phần mềm thực tế gồm frontend, backend, database và workflow.
+**Đọc nhanh trong 5 phút:** [Case study một trang](case-study.md)
 
-Workspace lưu tài liệu phân tích nghiệp vụ, sơ đồ và thiết kế UI/UX; thư mục phát triển đã được chuẩn bị, chưa khởi tạo project lập trình hoặc cài dependency. Người dùng phụ trách vai trò BA; trợ lý hỗ trợ phân tích và thiết kế.
+---
 
-## Bắt đầu
+## Bài toán
 
-1. Đọc [Project Charter](00-project-management/project-charter.md), [Roadmap](00-project-management/roadmap.md) và [Stakeholder Analysis](01-discovery/stakeholder-analysis.md).
-2. Xem [phân tích As-Is](03-process-models/as-is-process-analysis.md), [Gap Analysis](03-process-models/pain-point-and-gap-analysis.md) và các sơ đồ trong [As-Is](03-process-models/as-is/) hoặc [To-Be](03-process-models/to-be/).
-3. Theo dõi câu hỏi chưa được làm rõ tại [Open Questions Log](01-discovery/open-questions-log.md).
-4. BA rà soát nội dung và quyết định công việc tiếp theo; phân biệt bản nháp với yêu cầu đã được xác nhận.
+TechNova tiếp nhận, cấp quyền và xử lý nghỉ việc bằng email, Excel và tin nhắn:
+
+- HR không biết nhiệm vụ nào của nhân viên mới chưa xong, ai đang giữ.
+- Quyền nhạy cảm có thể được cấp khi chưa qua Security; phê duyệt nằm rải rác trong email.
+- Tài khoản của người đã nghỉ việc có thể vẫn hoạt động, nhất là khi nghỉ đột xuất.
+
+## Giải pháp
+
+Một hệ thống tập trung nơi mỗi việc đều có người phụ trách, hạn và trạng thái; mỗi quyền đi đúng cấp phê duyệt theo danh mục; và mọi quyền đã cấp được ghi vào một **sổ quyền** chung, để khi nhân viên nghỉ việc, hệ thống biết chính xác cần thu hồi những gì.
+
+| Quy trình | Điểm chính |
+| --- | --- |
+| Onboarding | Tự tạo nhiệm vụ theo mẫu chức danh; từng quyền được duyệt và cấp lần lượt; quyền bắt buộc bị từ chối thì **chặn (BLOCKED)** chứ không kết thúc; chỉ đóng khi hệ thống kiểm tra đủ điều kiện và HR xác nhận |
+| Access Request | Nhân viên tự gửi yêu cầu; cấp phê duyệt suy ra từ danh mục (quyền nhạy cảm cần Security sau Manager); không ai tự duyệt yêu cầu của mình |
+| Offboarding | Danh sách thu hồi lập tự động từ sổ quyền; thu hồi lúc 18:00 ngày cuối hoặc trong 4 giờ nếu nghỉ đột xuất; thu hồi quyền **không có ngoại lệ**, thiết bị thì có ngoại lệ được Manager duyệt |
+
+![BPMN To-Be Onboarding](process-models/to-be/onboarding/to-be-onboarding.png)
+
+## Sản phẩm
+
+| Giai đoạn | Tài liệu |
+| --- | --- |
+| Khởi tạo | [Project Charter](project-management/project-charter.md) · [Roadmap](project-management/roadmap.md) |
+| Khảo sát | [Stakeholder Analysis](discovery/stakeholder-analysis.md) · [Thu thập yêu cầu](discovery/requirement-elicitation.md) · [Ghi chú phỏng vấn](discovery/interview-notes.md) · [Mục tiêu, KPI, phạm vi](discovery/business-goals-kpis-and-scope.md) · [Nhật ký câu hỏi mở](discovery/open-questions-log.md) |
+| Phân tích quy trình | [Phân tích As-Is](process-models/as-is-process-analysis.md) · [Pain Point & Gap Analysis](process-models/pain-point-and-gap-analysis.md) · [BPMN As-Is](process-models/as-is/) · [BPMN To-Be](process-models/to-be/) |
+| Yêu cầu nghiệp vụ | [Business Rules Catalog](requirements/business-rules/business-rules-catalog.md) · BRD: [Onboarding](requirements/brd/brd-onboarding.md), [Access Request](requirements/brd/brd-access-request.md), [Offboarding](requirements/brd/brd-offboarding.md) |
+| Use case, user story | Use case: [Onboarding](requirements/use-case-specifications/onboarding-use-cases.md), [Access Request](requirements/use-case-specifications/access-request-use-cases.md), [Offboarding](requirements/use-case-specifications/offboarding-use-cases.md) · User story và AC: [Onboarding](requirements/user-stories/onboarding-user-stories.md), [Access Request](requirements/user-stories/access-request-user-stories.md), [Offboarding](requirements/user-stories/offboarding-user-stories.md) |
+| Hệ thống | [SRS](requirements/srs/srs-elams.md) · [ERD và từ điển dữ liệu](data-models/) |
+| Giao diện | Đặc tả màn hình: [Onboarding](ui-ux/onboarding-screen-specifications.md), [Access Request](ui-ux/access-request-screen-specifications.md), [Offboarding](ui-ux/offboarding-screen-specifications.md) · [Wireframe Figma](https://www.figma.com/design/sxQaybHEwuvCMIBTmxwuxE/ELAMS) |
+| Kiểm chứng | RTM: [Onboarding](traceability/rtm-onboarding.md), [Access Request](traceability/rtm-access-request.md), [Offboarding](traceability/rtm-offboarding.md) · UAT: [Onboarding](validation/uat-onboarding.md), [Access Request](validation/uat-access-request.md), [Offboarding](validation/uat-offboarding.md) |
+
+**Quy mô:** 6 sơ đồ BPMN · 30 quy tắc nghiệp vụ · 33 yêu cầu nghiệp vụ · 27 use case · 38 user story với 144 acceptance criteria · 13 màn hình · 58 yêu cầu chức năng và 13 phi chức năng · 23 bảng dữ liệu · 40 test case UAT.
+
+Mỗi yêu cầu nghiệp vụ được truy vết tới quy tắc, bước BPMN, use case, user story, màn hình, yêu cầu SRS và test case UAT.
+
+![Wireframe – Chi tiết yêu cầu onboarding](ui-ux/wireframes/onboarding/SCR-ON-02-a-cho-dieu-kien-con-thieu.png)
+
+## Giới hạn
+
+- TechNova, stakeholder và dữ liệu là giả định; phỏng vấn được giả lập.
+- Tài liệu chưa được stakeholder thật xác nhận. Các điểm chưa chắc chắn được ghi thành giả định có mã tại [Nhật ký câu hỏi mở](discovery/open-questions-log.md), không được trình bày như sự thật.
+- Chưa có phần mềm chạy được; thư mục [implementation](implementation/) dành cho giai đoạn lập trình tùy chọn.
+
+## Công cụ
+
+Camunda Modeler (BPMN 2.0) · draw.io (use case, ERD) · Figma (wireframe) · Markdown, Mermaid · Git, GitHub
 
 ## Cấu trúc thư mục
 
-| Thư mục | Nội dung dự kiến |
+| Thư mục | Nội dung |
 | --- | --- |
-| [00-project-management](00-project-management/) | Project Charter và tài liệu quản lý dự án |
-| [01-discovery](01-discovery/) | Bối cảnh, stakeholder, khảo sát, nguồn thông tin và thuật ngữ |
-| [02-requirements](02-requirements/) | BRD, SRS, business rules, use case, user story và acceptance criteria |
-| [03-process-models](03-process-models/) | BPMN hiện trạng và tương lai, activity diagram |
-| [04-data-models](04-data-models/) | Mô hình dữ liệu, ERD và data dictionary |
-| [05-interaction-models](05-interaction-models/) | System context và sequence diagram (sơ đồ use case nằm cùng đặc tả use case trong `02-requirements/use-case-specifications/`) |
-| [06-ui-ux](06-ui-ux/) | User flow, cấu trúc màn hình, wireframe, thiết kế Figma và prototype |
-| [07-validation](07-validation/) | Checklist rà soát, phản hồi và kịch bản UAT |
-| [08-traceability](08-traceability/) | Liên kết mục tiêu, yêu cầu, sơ đồ, màn hình và kiểm thử |
-| [09-implementation](09-implementation/) | Chuẩn bị mã nguồn frontend, backend, database và workflow thực thi |
+| [project-management](project-management/) | Charter, roadmap |
+| [discovery](discovery/) | Stakeholder, thu thập yêu cầu, KPI, câu hỏi mở |
+| [requirements](requirements/) | Business rules, BRD, use case, user story, SRS, quyết định thiết kế |
+| [process-models](process-models/) | Phân tích As-Is, gap, BPMN As-Is và To-Be |
+| [data-models](data-models/) | ERD, từ điển dữ liệu |
+| [ui-ux](ui-ux/) | Đặc tả màn hình, wireframe |
+| [validation](validation/) | Kịch bản UAT, review log |
+| [traceability](traceability/) | Ma trận truy vết |
+| [implementation](implementation/) | Ghi chú kỹ thuật, dành cho lập trình |
 
-## Nguyên tắc làm việc
+---
 
-- Viết nội dung bằng tiếng Việt; giữ thuật ngữ tiếng Anh khi cần để thống nhất với dự án.
-- Phân biệt yêu cầu đã xác nhận, giả định và câu hỏi còn mở. Câu hỏi mới chỉ thêm vào Open Questions Log với mã `Q-xx`.
-- Giữ tài liệu BA ở mức nghiệp vụ; cơ chế thực thi (engine, retry, idempotency) ghi tại `09-implementation/`.
-- Giai đoạn lập trình là tùy chọn, thực hiện sau khi portfolio BA đã có thể gửi đi.
-- Chỉ ghi trạng thái đã duyệt khi có xác nhận của người có thẩm quyền.
-- Lưu nguồn sơ đồ có thể chỉnh sửa cùng bản xuất khi bắt đầu xây dựng sơ đồ.
+## English summary
 
-## Vị trí sơ đồ và tài liệu yêu cầu
-
-- `03-process-models/as-is/` và `03-process-models/to-be/` chia theo `onboarding/`, `access-request/`, `offboarding/`. PNG quy trình chính và ngoại lệ nằm cùng nhóm với BPMN tương ứng.
-- `02-requirements/` chia thành `brd/`, `srs/`, `business-rules/`, `use-case-specifications/`, `user-stories/` và `design-decisions/`. Xem [các quyết định thiết kế Onboarding To-Be](02-requirements/design-decisions/onboarding-to-be-design-decisions.md).
-- `09-implementation/` gồm `frontend/`, `backend/`, `database/`, `workflow/`; xem [hướng dẫn thư mục phát triển](09-implementation/README.md).
-
-## BPMN phân tích và BPMN thực thi
-
-BPMN tại `03-process-models/` là mô hình phân tích nghiệp vụ. BPMN To-Be không mặc định là bản triển khai được trên Camunda. `09-implementation/workflow/` dành cho mô hình thực thi sau khi bổ sung cấu hình engine, worker và kiểm thử phù hợp. Hiện chưa sao chép mô hình BA vào thư mục này; chỉ có [ghi chú kỹ thuật Onboarding](09-implementation/workflow/onboarding-technical-notes.md).
+ELAMS is a personal Business Analysis project for a fictional 500-employee company. It covers three processes (employee onboarding, access requests and offboarding) from discovery to delivery-ready specifications: As-Is/To-Be BPMN, a business rules catalog, BRDs, use cases, user stories with Given/When/Then acceptance criteria, screen specifications with Figma wireframes, a logical ERD with data dictionary, an SRS, traceability matrices and UAT scripts. Documents are written in Vietnamese with standard English BA terminology.

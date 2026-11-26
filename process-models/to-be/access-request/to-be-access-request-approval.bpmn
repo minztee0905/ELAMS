@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_AccessRequestToBe" targetNamespace="https://elams.example/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0">
+  <bpmn:collaboration id="Collaboration_AccessRequestToBe">
+    <bpmn:participant id="Pool_ELAMS" name="Access Request &amp; Approval – To-Be" processRef="Process_AccessRequestToBe" />
+    <bpmn:textAnnotation id="Note_Gaps">
+      <bpmn:text>GAP-AC-01: biểu mẫu chuẩn. GAP-AC-02: Approval Inbox. GAP-AC-03/04: cấp duyệt theo danh mục quyền. GAP-AC-05: IT chỉ nhận việc khi đủ phê duyệt. GAP-AC-06: lịch sử quyết định. GAP-AC-07: trạng thái chờ bổ sung.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Note_Scope">
+      <bpmn:text>Cùng logic phê duyệt với nhánh Sub_Access của Onboarding To-Be. Ủy quyền phê duyệt, escalation và quyền tạm thời là phạm vi mở rộng (Could Have); nhắc hạn duyệt là Should Have (Q-05).</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_AccessRequestToBe" name="Access Request &amp; Approval – To-Be" isExecutable="false">
+    <bpmn:documentation>To-Be Access Request &amp; Approval (TB-AC-01), bản 0.1 ngày 21/11/2026, mức nghiệp vụ. Quy tắc liên quan: requirements/design-decisions/access-request-to-be-design-decisions.md (BR-AC-01 đến BR-AC-06). Danh mục quyền nhạy cảm, thẩm quyền và SLA là giả định chưa được xác nhận. Không phải mô hình thực thi.</bpmn:documentation>
+    <bpmn:laneSet id="Lane_Requester_Set">
+      <bpmn:lane id="Lane_Requester" name="Người yêu cầu">
+        <bpmn:flowNodeRef>AR_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>RG01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E_Cancel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Manager" name="Manager">
+        <bpmn:flowNodeRef>M01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MG01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E_RejMgr</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Security" name="Security">
+        <bpmn:flowNodeRef>SE01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SG02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E_RejSec</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ELAMS" name="ELAMS">
+        <bpmn:flowNodeRef>S01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SG01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AR_End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_IT" name="IT">
+        <bpmn:flowNodeRef>I01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>IG01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>I02</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="AR_Start" name="Phát sinh nhu cầu cấp quyền">
+      <bpmn:outgoing>Flow_AR_Start_R01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="R01" name="Tạo yêu cầu cấp quyền trên biểu mẫu">
+      <bpmn:documentation>GAP-AC-01. Biểu mẫu có trường bắt buộc: hệ thống, quyền cần cấp, lý do sử dụng. Không gửi được khi thiếu trường bắt buộc (BR-AC-01).</bpmn:documentation>
+      <bpmn:incoming>Flow_AR_Start_R01</bpmn:incoming>
+      <bpmn:outgoing>Flow_R01_M01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="M01" name="Xét duyệt yêu cầu trong Approval Inbox">
+      <bpmn:documentation>GAP-AC-02. Manager thấy yêu cầu, lý do và cấp phê duyệt dự kiến. Từ chối hoặc yêu cầu bổ sung phải nhập lý do (BR-AC-02).</bpmn:documentation>
+      <bpmn:incoming>Flow_R01_M01</bpmn:incoming>
+      <bpmn:incoming>Flow_RG01_M01</bpmn:incoming>
+      <bpmn:outgoing>Flow_M01_MG01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="MG01" name="Quyết định của Manager?">
+      <bpmn:incoming>Flow_M01_MG01</bpmn:incoming>
+      <bpmn:outgoing>Flow_MG01_S01</bpmn:outgoing>
+      <bpmn:outgoing>Flow_MG01_R02</bpmn:outgoing>
+      <bpmn:outgoing>Flow_MG01_E_RejMgr</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="E_RejMgr" name="Manager từ chối – đã thông báo người yêu cầu">
+      <bpmn:incoming>Flow_MG01_E_RejMgr</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="R02" name="Bổ sung thông tin hoặc hủy yêu cầu">
+      <bpmn:documentation>GAP-AC-07. Yêu cầu ở trạng thái Chờ bổ sung. Không phản hồi không đồng nghĩa với hủy; không tự động hủy theo thời gian khi chưa có chính sách (Q-12).</bpmn:documentation>
+      <bpmn:incoming>Flow_MG01_R02</bpmn:incoming>
+      <bpmn:outgoing>Flow_R02_RG01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="RG01" name="Gửi lại?">
+      <bpmn:incoming>Flow_R02_RG01</bpmn:incoming>
+      <bpmn:outgoing>Flow_RG01_M01</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RG01_E_Cancel</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="E_Cancel" name="Người yêu cầu hủy yêu cầu">
+      <bpmn:incoming>Flow_RG01_E_Cancel</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="S01" name="Xác định cấp phê duyệt theo danh mục quyền">
+      <bpmn:documentation>GAP-AC-03. Mức nhạy cảm lấy từ danh mục quyền, không do người duyệt tự xác định (BR-AC-03). Giả định: quyền dữ liệu tài chính và quyền quản trị hệ thống là nhạy cảm (Q-06, Q-07).</bpmn:documentation>
+      <bpmn:incoming>Flow_MG01_S01</bpmn:incoming>
+      <bpmn:outgoing>Flow_S01_SG01</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="SG01" name="Quyền nhạy cảm?">
+      <bpmn:incoming>Flow_S01_SG01</bpmn:incoming>
+      <bpmn:outgoing>Flow_SG01_SE01</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SG01_I01</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="SE01" name="Xét duyệt quyền nhạy cảm">
+      <bpmn:documentation>GAP-AC-04. Security chỉ nhận yêu cầu sau khi Manager đã phê duyệt. Từ chối phải nhập lý do.</bpmn:documentation>
+      <bpmn:incoming>Flow_SG01_SE01</bpmn:incoming>
+      <bpmn:outgoing>Flow_SE01_SG02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="SG02" name="Security phê duyệt?">
+      <bpmn:incoming>Flow_SE01_SG02</bpmn:incoming>
+      <bpmn:outgoing>Flow_SG02_I01</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SG02_E_RejSec</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="E_RejSec" name="Security từ chối – đã thông báo người yêu cầu">
+      <bpmn:incoming>Flow_SG02_E_RejSec</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="I01" name="Chuẩn bị tài khoản và cấp quyền trên hệ thống đích">
+      <bpmn:documentation>GAP-AC-05, KPI-03. Nhiệm vụ cấp quyền chỉ được tạo cho IT khi đã đủ phê duyệt bắt buộc (BR-AC-04, Q-15). Đã có tài khoản thì dùng lại, chưa có thì tạo mới; không tạo trùng tài khoản. Thao tác trên hệ thống đích được mô phỏng.</bpmn:documentation>
+      <bpmn:incoming>Flow_SG01_I01</bpmn:incoming>
+      <bpmn:incoming>Flow_SG02_I01</bpmn:incoming>
+      <bpmn:incoming>Flow_I02_I01</bpmn:incoming>
+      <bpmn:outgoing>Flow_I01_IG01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="IG01" name="Cấp quyền thành công?">
+      <bpmn:incoming>Flow_I01_IG01</bpmn:incoming>
+      <bpmn:outgoing>Flow_IG01_S02</bpmn:outgoing>
+      <bpmn:outgoing>Flow_IG01_I02</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="I02" name="Khắc phục lỗi cấp quyền">
+      <bpmn:incoming>Flow_IG01_I02</bpmn:incoming>
+      <bpmn:outgoing>Flow_I02_I01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S02" name="Đóng yêu cầu và thông báo kết quả">
+      <bpmn:documentation>GAP-AC-06. Lịch sử yêu cầu lưu người duyệt, kết quả, lý do và thời điểm của từng quyết định (BR-AC-05, KPI-06).</bpmn:documentation>
+      <bpmn:incoming>Flow_IG01_S02</bpmn:incoming>
+      <bpmn:outgoing>Flow_S02_AR_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="AR_End" name="Quyền đã được cấp">
+      <bpmn:incoming>Flow_S02_AR_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_AR_Start_R01" sourceRef="AR_Start" targetRef="R01" />
+    <bpmn:sequenceFlow id="Flow_R01_M01" sourceRef="R01" targetRef="M01" />
+    <bpmn:sequenceFlow id="Flow_M01_MG01" sourceRef="M01" targetRef="MG01" />
+    <bpmn:sequenceFlow id="Flow_S01_SG01" sourceRef="S01" targetRef="SG01" />
+    <bpmn:sequenceFlow id="Flow_SE01_SG02" sourceRef="SE01" targetRef="SG02" />
+    <bpmn:sequenceFlow id="Flow_I01_IG01" sourceRef="I01" targetRef="IG01" />
+    <bpmn:sequenceFlow id="Flow_S02_AR_End" sourceRef="S02" targetRef="AR_End" />
+    <bpmn:sequenceFlow id="Flow_MG01_S01" name="Phê duyệt" sourceRef="MG01" targetRef="S01" />
+    <bpmn:sequenceFlow id="Flow_MG01_R02" name="Cần bổ sung" sourceRef="MG01" targetRef="R02" />
+    <bpmn:sequenceFlow id="Flow_MG01_E_RejMgr" name="Từ chối" sourceRef="MG01" targetRef="E_RejMgr" />
+    <bpmn:sequenceFlow id="Flow_R02_RG01" sourceRef="R02" targetRef="RG01" />
+    <bpmn:sequenceFlow id="Flow_RG01_M01" name="Có" sourceRef="RG01" targetRef="M01" />
+    <bpmn:sequenceFlow id="Flow_RG01_E_Cancel" name="Không" sourceRef="RG01" targetRef="E_Cancel" />
+    <bpmn:sequenceFlow id="Flow_SG01_SE01" name="Có" sourceRef="SG01" targetRef="SE01" />
+    <bpmn:sequenceFlow id="Flow_SG01_I01" name="Không" sourceRef="SG01" targetRef="I01" />
+    <bpmn:sequenceFlow id="Flow_SG02_I01" name="Có" sourceRef="SG02" targetRef="I01" />
+    <bpmn:sequenceFlow id="Flow_SG02_E_RejSec" name="Không" sourceRef="SG02" targetRef="E_RejSec" />
+    <bpmn:sequenceFlow id="Flow_IG01_S02" name="Có" sourceRef="IG01" targetRef="S02" />
+    <bpmn:sequenceFlow id="Flow_IG01_I02" name="Không" sourceRef="IG01" targetRef="I02" />
+    <bpmn:sequenceFlow id="Flow_I02_I01" sourceRef="I02" targetRef="I01" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Process_AccessRequestToBe_Diagram">
+    <bpmndi:BPMNPlane id="Process_AccessRequestToBe_Plane" bpmnElement="Collaboration_AccessRequestToBe">
+      <bpmndi:BPMNShape id="Pool_ELAMS_di" bpmnElement="Pool_ELAMS" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1930" height="1040" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Requester_di" bpmnElement="Lane_Requester" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="1900" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Manager_di" bpmnElement="Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="180" y="340" width="1900" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Security_di" bpmnElement="Lane_Security" isHorizontal="true">
+        <dc:Bounds x="180" y="470" width="1900" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ELAMS_di" bpmnElement="Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="180" y="730" width="1900" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_IT_di" bpmnElement="Lane_IT" isHorizontal="true">
+        <dc:Bounds x="180" y="860" width="1900" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AR_Start_di" bpmnElement="AR_Start">
+        <dc:Bounds x="262" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R01_di" bpmnElement="R01">
+        <dc:Bounds x="380" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M01_di" bpmnElement="M01">
+        <dc:Bounds x="530" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MG01_di" bpmnElement="MG01" isMarkerVisible="true">
+        <dc:Bounds x="705" y="380" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="752" y="353" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E_RejMgr_di" bpmnElement="E_RejMgr">
+        <dc:Bounds x="862" y="387" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="825" y="429" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R02_di" bpmnElement="R02">
+        <dc:Bounds x="680" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RG01_di" bpmnElement="RG01" isMarkerVisible="true">
+        <dc:Bounds x="555" y="250" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="608" y="225" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E_Cancel_di" bpmnElement="E_Cancel">
+        <dc:Bounds x="562" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="442" y="125" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S01_di" bpmnElement="S01">
+        <dc:Bounds x="830" y="755" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SG01_di" bpmnElement="SG01" isMarkerVisible="true">
+        <dc:Bounds x="1005" y="770" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="970" y="826" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SE01_di" bpmnElement="SE01">
+        <dc:Bounds x="1130" y="625" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SG02_di" bpmnElement="SG02" isMarkerVisible="true">
+        <dc:Bounds x="1305" y="640" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1270" y="696" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E_RejSec_di" bpmnElement="E_RejSec">
+        <dc:Bounds x="1312" y="517" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1192" y="515" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="I01_di" bpmnElement="I01">
+        <dc:Bounds x="1430" y="885" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IG01_di" bpmnElement="IG01" isMarkerVisible="true">
+        <dc:Bounds x="1605" y="900" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1662" y="911" width="110" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="I02_di" bpmnElement="I02">
+        <dc:Bounds x="1580" y="1015" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S02_di" bpmnElement="S02">
+        <dc:Bounds x="1730" y="755" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AR_End_di" bpmnElement="AR_End">
+        <dc:Bounds x="1912" y="777" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1875" y="819" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_AR_Start_R01_di" bpmnElement="Flow_AR_Start_R01">
+        <di:waypoint x="298" y="275" />
+        <di:waypoint x="380" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_R01_M01_di" bpmnElement="Flow_R01_M01">
+        <di:waypoint x="480" y="275" />
+        <di:waypoint x="505" y="275" />
+        <di:waypoint x="505" y="405" />
+        <di:waypoint x="530" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M01_MG01_di" bpmnElement="Flow_M01_MG01">
+        <di:waypoint x="630" y="405" />
+        <di:waypoint x="705" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_S01_SG01_di" bpmnElement="Flow_S01_SG01">
+        <di:waypoint x="930" y="795" />
+        <di:waypoint x="1005" y="795" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SE01_SG02_di" bpmnElement="Flow_SE01_SG02">
+        <di:waypoint x="1230" y="665" />
+        <di:waypoint x="1305" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I01_IG01_di" bpmnElement="Flow_I01_IG01">
+        <di:waypoint x="1530" y="925" />
+        <di:waypoint x="1605" y="925" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_S02_AR_End_di" bpmnElement="Flow_S02_AR_End">
+        <di:waypoint x="1830" y="795" />
+        <di:waypoint x="1912" y="795" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MG01_S01_di" bpmnElement="Flow_MG01_S01">
+        <di:waypoint x="730" y="430" />
+        <di:waypoint x="730" y="795" />
+        <di:waypoint x="830" y="795" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="736" y="438" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MG01_R02_di" bpmnElement="Flow_MG01_R02">
+        <di:waypoint x="730" y="380" />
+        <di:waypoint x="730" y="315" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="658" y="356" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MG01_E_RejMgr_di" bpmnElement="Flow_MG01_E_RejMgr">
+        <di:waypoint x="755" y="405" />
+        <di:waypoint x="862" y="405" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="763" y="385" width="42" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_R02_RG01_di" bpmnElement="Flow_R02_RG01">
+        <di:waypoint x="680" y="275" />
+        <di:waypoint x="605" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RG01_M01_di" bpmnElement="Flow_RG01_M01">
+        <di:waypoint x="580" y="300" />
+        <di:waypoint x="580" y="365" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="586" y="308" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RG01_E_Cancel_di" bpmnElement="Flow_RG01_E_Cancel">
+        <di:waypoint x="580" y="250" />
+        <di:waypoint x="580" y="163" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="586" y="226" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SG01_SE01_di" bpmnElement="Flow_SG01_SE01">
+        <di:waypoint x="1030" y="770" />
+        <di:waypoint x="1030" y="665" />
+        <di:waypoint x="1130" y="665" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1036" y="746" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SG01_I01_di" bpmnElement="Flow_SG01_I01">
+        <di:waypoint x="1055" y="795" />
+        <di:waypoint x="1460" y="795" />
+        <di:waypoint x="1460" y="885" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1063" y="775" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SG02_I01_di" bpmnElement="Flow_SG02_I01">
+        <di:waypoint x="1355" y="665" />
+        <di:waypoint x="1500" y="665" />
+        <di:waypoint x="1500" y="885" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1363" y="645" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SG02_E_RejSec_di" bpmnElement="Flow_SG02_E_RejSec">
+        <di:waypoint x="1330" y="640" />
+        <di:waypoint x="1330" y="553" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1336" y="616" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_IG01_S02_di" bpmnElement="Flow_IG01_S02">
+        <di:waypoint x="1630" y="900" />
+        <di:waypoint x="1630" y="795" />
+        <di:waypoint x="1730" y="795" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1636" y="876" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_IG01_I02_di" bpmnElement="Flow_IG01_I02">
+        <di:waypoint x="1630" y="950" />
+        <di:waypoint x="1630" y="1015" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1636" y="958" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I02_I01_di" bpmnElement="Flow_I02_I01">
+        <di:waypoint x="1580" y="1055" />
+        <di:waypoint x="1480" y="1055" />
+        <di:waypoint x="1480" y="965" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Note_Gaps_di" bpmnElement="Note_Gaps">
+        <dc:Bounds x="800" y="105" width="420" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Scope_di" bpmnElement="Note_Scope">
+        <dc:Bounds x="240" y="885" width="420" height="75" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

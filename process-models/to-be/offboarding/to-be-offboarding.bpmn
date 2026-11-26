@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OffboardingToBe" targetNamespace="https://elams.example/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0">
+  <bpmn:message id="Message_LastDayChange" name="Thông báo thay đổi ngày nghỉ việc" />
+  <bpmn:collaboration id="Collaboration_OffboardingToBe">
+    <bpmn:participant id="Pool_ELAMS" name="Employee Offboarding – To-Be" processRef="Process_OffboardingToBe" />
+    <bpmn:textAnnotation id="Note_Gaps">
+      <bpmn:text>GAP-OFF-01: yêu cầu tập trung. GAP-OFF-02/03: nhiệm vụ thu hồi quyền và thiết bị. GAP-OFF-04: kiểm tra hoàn tất. GAP-OFF-05: ngoại lệ thiết bị có duyệt. GAP-OFF-06: đổi ngày. GAP-OFF-07: thu hồi khẩn.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Note_Scope">
+      <bpmn:text>Mở dấu + để xem chi tiết từng nhánh. Hạn và trạng thái quá hạn của mọi nhiệm vụ được ELAMS theo dõi (GAP-OFF-08); thông báo nhắc việc tự động là Should Have (Q-01, Q-05).</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_OffboardingToBe" name="Employee Offboarding – To-Be" isExecutable="false">
+    <bpmn:documentation>To-Be Offboarding (TB-OFF-01), bản 0.1 ngày 21/11/2026, mức nghiệp vụ. Quy tắc liên quan: requirements/design-decisions/offboarding-to-be-design-decisions.md (BR-OFF-01 đến BR-OFF-08). Thời điểm thu hồi, thời hạn khẩn và thẩm quyền duyệt ngoại lệ là giả định chưa được xác nhận. Không phải mô hình thực thi.</bpmn:documentation>
+    <bpmn:laneSet id="Lane_HR_Set">
+      <bpmn:lane id="Lane_HR" name="HR">
+        <bpmn:flowNodeRef>OFF_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>H03</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>OFF_End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_DateChange</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ELAMS" name="ELAMS">
+        <bpmn:flowNodeRef>S01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Split</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Handover</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Revoke</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Devices</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AND_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S02</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G01</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="OFF_Start" name="Đã xác nhận thông tin nghỉ việc">
+      <bpmn:outgoing>Flow_OFF_Start_H01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="H01" name="Tạo yêu cầu offboarding">
+      <bpmn:documentation>GAP-OFF-01. Trường bắt buộc: nhân viên, ngày nghỉ việc, lý do, nghỉ việc đột xuất hay không (BR-OFF-01).</bpmn:documentation>
+      <bpmn:incoming>Flow_OFF_Start_H01</bpmn:incoming>
+      <bpmn:outgoing>Flow_H01_S01</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S01" name="Lập danh sách quyền, thiết bị đã cấp và tạo nhiệm vụ thu hồi">
+      <bpmn:documentation>GAP-OFF-02/03, BR-OFF-02. Danh sách lấy từ lịch sử cấp quyền và cấp phát thiết bị. Mỗi nhiệm vụ có người phụ trách và hạn; ELAMS theo dõi hạn và đánh dấu quá hạn (GAP-OFF-08).</bpmn:documentation>
+      <bpmn:incoming>Flow_H01_S01</bpmn:incoming>
+      <bpmn:outgoing>Flow_S01_AND_Split</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="AND_Split" name="">
+      <bpmn:incoming>Flow_S01_AND_Split</bpmn:incoming>
+      <bpmn:outgoing>Flow_AND_Split_Sub_Revoke</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AND_Split_Sub_Handover</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AND_Split_Sub_Devices</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:subProcess id="Sub_Handover" name="Bàn giao công việc">
+      <bpmn:incoming>Flow_AND_Split_Sub_Handover</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sub_Handover_AND_Join</bpmn:outgoing>
+      <bpmn:laneSet id="Hand_Lane_Manager_Set">
+        <bpmn:lane id="Hand_Lane_Manager" name="Manager">
+          <bpmn:flowNodeRef>W_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>W01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>W03</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>WG01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>W_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Hand_Lane_Employee" name="Employee">
+          <bpmn:flowNodeRef>W02</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="W_Start" name="Có nhiệm vụ bàn giao công việc">
+        <bpmn:outgoing>Flow_W_Start_W01</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="W01" name="Lập kế hoạch bàn giao">
+        <bpmn:incoming>Flow_W_Start_W01</bpmn:incoming>
+        <bpmn:outgoing>Flow_W01_W02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="W02" name="Thực hiện bàn giao và cập nhật tiến độ">
+        <bpmn:incoming>Flow_W01_W02</bpmn:incoming>
+        <bpmn:incoming>Flow_WG01_W02</bpmn:incoming>
+        <bpmn:outgoing>Flow_W02_W03</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="W03" name="Kiểm tra kết quả bàn giao">
+        <bpmn:incoming>Flow_W02_W03</bpmn:incoming>
+        <bpmn:outgoing>Flow_W03_WG01</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="WG01" name="Bàn giao đầy đủ?">
+        <bpmn:incoming>Flow_W03_WG01</bpmn:incoming>
+        <bpmn:outgoing>Flow_WG01_W_End</bpmn:outgoing>
+        <bpmn:outgoing>Flow_WG01_W02</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="W_End" name="Manager đã xác nhận bàn giao">
+        <bpmn:incoming>Flow_WG01_W_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_W_Start_W01" sourceRef="W_Start" targetRef="W01" />
+      <bpmn:sequenceFlow id="Flow_W01_W02" sourceRef="W01" targetRef="W02" />
+      <bpmn:sequenceFlow id="Flow_W02_W03" sourceRef="W02" targetRef="W03" />
+      <bpmn:sequenceFlow id="Flow_W03_WG01" sourceRef="W03" targetRef="WG01" />
+      <bpmn:sequenceFlow id="Flow_WG01_W_End" name="Có" sourceRef="WG01" targetRef="W_End" />
+      <bpmn:sequenceFlow id="Flow_WG01_W02" name="Không" sourceRef="WG01" targetRef="W02" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Sub_Revoke" name="Thu hồi quyền truy cập">
+      <bpmn:documentation>Thu hồi quyền không có ngoại lệ được duyệt (BR-OFF-05).</bpmn:documentation>
+      <bpmn:incoming>Flow_AND_Split_Sub_Revoke</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sub_Revoke_AND_Join</bpmn:outgoing>
+      <bpmn:laneSet id="Rev_Lane_ELAMS_Set">
+        <bpmn:lane id="Rev_Lane_ELAMS" name="ELAMS">
+          <bpmn:flowNodeRef>V_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>VG_Wait</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>V_Timer</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>V_Urgent</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>V02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>VG01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>V_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Rev_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>V01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>V03</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="V_Start" name="Có nhiệm vụ thu hồi quyền">
+        <bpmn:outgoing>Flow_V_Start_VG_Wait</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:eventBasedGateway id="VG_Wait" name="">
+        <bpmn:incoming>Flow_V_Start_VG_Wait</bpmn:incoming>
+        <bpmn:outgoing>Flow_VG_Wait_V_Timer</bpmn:outgoing>
+        <bpmn:outgoing>Flow_VG_Wait_V_Urgent</bpmn:outgoing>
+      </bpmn:eventBasedGateway>
+      <bpmn:intermediateCatchEvent id="V_Timer" name="Đến thời điểm thu hồi theo ngày nghỉ việc">
+        <bpmn:documentation>BR-OFF-03. Thời điểm thu hồi tính theo ngày nghỉ việc hiện hành; nếu yêu cầu được đánh dấu đột xuất khi tạo thì thu hồi ngay. Thu hồi theo ngày hay theo giờ cụ thể chưa chốt (Q-25).</bpmn:documentation>
+        <bpmn:incoming>Flow_VG_Wait_V_Timer</bpmn:incoming>
+        <bpmn:outgoing>Flow_V_Timer_V01</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="V_Timer_Def" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:intermediateCatchEvent id="V_Urgent" name="Yêu cầu được chuyển sang đột xuất">
+        <bpmn:documentation>GAP-OFF-07, BR-OFF-04. HR đánh dấu đột xuất trên yêu cầu khi quy trình đang chạy; thu hồi bắt đầu ngay, không chờ ngày nghỉ việc. Thời hạn thu hồi khẩn chưa chốt (Q-26).</bpmn:documentation>
+        <bpmn:incoming>Flow_VG_Wait_V_Urgent</bpmn:incoming>
+        <bpmn:outgoing>Flow_V_Urgent_V01</bpmn:outgoing>
+        <bpmn:conditionalEventDefinition id="V_Urgent_Def">
+          <bpmn:condition xsi:type="bpmn:tFormalExpression">HR đánh dấu yêu cầu offboarding là nghỉ việc đột xuất</bpmn:condition>
+        </bpmn:conditionalEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:userTask id="V01" name="Thu hồi hoặc vô hiệu hóa từng tài khoản và cập nhật kết quả">
+        <bpmn:documentation>GAP-OFF-02. IT làm theo danh sách quyền đã cấp do ELAMS lập; mỗi tài khoản có kết quả riêng. Yêu cầu đột xuất được ưu tiên và có hạn ngắn hơn.</bpmn:documentation>
+        <bpmn:incoming>Flow_V_Timer_V01</bpmn:incoming>
+        <bpmn:incoming>Flow_V_Urgent_V01</bpmn:incoming>
+        <bpmn:outgoing>Flow_V01_V02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="V02" name="Đối chiếu kết quả với danh sách quyền đã cấp">
+        <bpmn:documentation>BR-OFF-05. Mọi quyền trong danh sách phải ở trạng thái đã thu hồi hoặc đã vô hiệu hóa.</bpmn:documentation>
+        <bpmn:incoming>Flow_V01_V02</bpmn:incoming>
+        <bpmn:incoming>Flow_V03_V02</bpmn:incoming>
+        <bpmn:outgoing>Flow_V02_VG01</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="VG01" name="Đã thu hồi đủ mọi quyền?">
+        <bpmn:incoming>Flow_V02_VG01</bpmn:incoming>
+        <bpmn:outgoing>Flow_VG01_V_End</bpmn:outgoing>
+        <bpmn:outgoing>Flow_VG01_V03</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:userTask id="V03" name="Xử lý tài khoản chưa thu hồi được">
+        <bpmn:documentation>BR-OFF-05. Thu hồi quyền không có nhánh ngoại lệ: tài khoản chưa thu hồi được phải xử lý tiếp và báo Security nếu quá hạn. Người chịu trách nhiệm chưa chốt (Q-27).</bpmn:documentation>
+        <bpmn:incoming>Flow_VG01_V03</bpmn:incoming>
+        <bpmn:outgoing>Flow_V03_V02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="V_End" name="Mọi quyền đã được thu hồi">
+        <bpmn:incoming>Flow_VG01_V_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_V_Start_VG_Wait" sourceRef="V_Start" targetRef="VG_Wait" />
+      <bpmn:sequenceFlow id="Flow_V01_V02" sourceRef="V01" targetRef="V02" />
+      <bpmn:sequenceFlow id="Flow_V02_VG01" sourceRef="V02" targetRef="VG01" />
+      <bpmn:sequenceFlow id="Flow_VG_Wait_V_Timer" sourceRef="VG_Wait" targetRef="V_Timer" />
+      <bpmn:sequenceFlow id="Flow_VG_Wait_V_Urgent" sourceRef="VG_Wait" targetRef="V_Urgent" />
+      <bpmn:sequenceFlow id="Flow_V_Timer_V01" sourceRef="V_Timer" targetRef="V01" />
+      <bpmn:sequenceFlow id="Flow_V_Urgent_V01" sourceRef="V_Urgent" targetRef="V01" />
+      <bpmn:sequenceFlow id="Flow_VG01_V_End" name="Có" sourceRef="VG01" targetRef="V_End" />
+      <bpmn:sequenceFlow id="Flow_VG01_V03" name="Không" sourceRef="VG01" targetRef="V03" />
+      <bpmn:sequenceFlow id="Flow_V03_V02" sourceRef="V03" targetRef="V02" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Sub_Devices" name="Thu hồi thiết bị">
+      <bpmn:incoming>Flow_AND_Split_Sub_Devices</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sub_Devices_AND_Join</bpmn:outgoing>
+      <bpmn:laneSet id="Dev_Lane_Manager_Set">
+        <bpmn:lane id="Dev_Lane_Manager" name="Manager">
+          <bpmn:flowNodeRef>D04</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>DG02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D_EndExc</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Dev_Lane_Employee" name="Employee">
+          <bpmn:flowNodeRef>D_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D01</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Dev_Lane_IT" name="IT">
+          <bpmn:flowNodeRef>D02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>DG01</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D_End</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>D03</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="D_Start" name="Có nhiệm vụ thu hồi thiết bị">
+        <bpmn:outgoing>Flow_D_Start_D01</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:manualTask id="D01" name="Hoàn trả thiết bị">
+        <bpmn:incoming>Flow_D_Start_D01</bpmn:incoming>
+        <bpmn:incoming>Flow_DG02_D01</bpmn:incoming>
+        <bpmn:outgoing>Flow_D01_D02</bpmn:outgoing>
+      </bpmn:manualTask>
+      <bpmn:userTask id="D02" name="Kiểm tra tình trạng và ghi nhận thu hồi thiết bị">
+        <bpmn:documentation>GAP-OFF-03. Đối chiếu với danh sách thiết bị đã cấp lúc onboarding; ghi tình trạng và biên bản thu hồi.</bpmn:documentation>
+        <bpmn:incoming>Flow_D01_D02</bpmn:incoming>
+        <bpmn:outgoing>Flow_D02_DG01</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="DG01" name="Đã thu hồi đủ thiết bị?">
+        <bpmn:incoming>Flow_D02_DG01</bpmn:incoming>
+        <bpmn:outgoing>Flow_DG01_D_End</bpmn:outgoing>
+        <bpmn:outgoing>Flow_DG01_D03</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="D_End" name="Thiết bị đã thu hồi đủ">
+        <bpmn:incoming>Flow_DG01_D_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:userTask id="D03" name="Ghi nhận thiết bị còn thiếu, lý do và bằng chứng">
+        <bpmn:incoming>Flow_DG01_D03</bpmn:incoming>
+        <bpmn:outgoing>Flow_D03_D04</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="D04" name="Quyết định tiếp tục thu hồi hoặc duyệt ngoại lệ">
+        <bpmn:documentation>GAP-OFF-05, BR-OFF-06. Giả định: Manager duyệt ngoại lệ thiết bị (Q-23). Duyệt ngoại lệ phải có lý do và bằng chứng.</bpmn:documentation>
+        <bpmn:incoming>Flow_D03_D04</bpmn:incoming>
+        <bpmn:outgoing>Flow_D04_DG02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="DG02" name="Duyệt ngoại lệ?">
+        <bpmn:incoming>Flow_D04_DG02</bpmn:incoming>
+        <bpmn:outgoing>Flow_DG02_D_EndExc</bpmn:outgoing>
+        <bpmn:outgoing>Flow_DG02_D01</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="D_EndExc" name="Đóng theo ngoại lệ đã duyệt">
+        <bpmn:documentation>Thiết bị chưa hoàn trả vẫn được theo dõi riêng sau khi đóng offboarding (BG-04, Q-34).</bpmn:documentation>
+        <bpmn:incoming>Flow_DG02_D_EndExc</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_D_Start_D01" sourceRef="D_Start" targetRef="D01" />
+      <bpmn:sequenceFlow id="Flow_D02_DG01" sourceRef="D02" targetRef="DG01" />
+      <bpmn:sequenceFlow id="Flow_D01_D02" sourceRef="D01" targetRef="D02" />
+      <bpmn:sequenceFlow id="Flow_DG01_D_End" name="Có" sourceRef="DG01" targetRef="D_End" />
+      <bpmn:sequenceFlow id="Flow_DG01_D03" name="Không" sourceRef="DG01" targetRef="D03" />
+      <bpmn:sequenceFlow id="Flow_D03_D04" sourceRef="D03" targetRef="D04" />
+      <bpmn:sequenceFlow id="Flow_D04_DG02" sourceRef="D04" targetRef="DG02" />
+      <bpmn:sequenceFlow id="Flow_DG02_D_EndExc" name="Có" sourceRef="DG02" targetRef="D_EndExc" />
+      <bpmn:sequenceFlow id="Flow_DG02_D01" name="Không" sourceRef="DG02" targetRef="D01" />
+    </bpmn:subProcess>
+    <bpmn:parallelGateway id="AND_Join" name="">
+      <bpmn:incoming>Flow_Sub_Revoke_AND_Join</bpmn:incoming>
+      <bpmn:incoming>Flow_Sub_Handover_AND_Join</bpmn:incoming>
+      <bpmn:incoming>Flow_Sub_Devices_AND_Join</bpmn:incoming>
+      <bpmn:outgoing>Flow_AND_Join_S02</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="S02" name="Kiểm tra điều kiện hoàn tất theo dữ liệu mới nhất">
+      <bpmn:documentation>GAP-OFF-04, BR-OFF-08. Kiểm tra: mọi quyền đã thu hồi; Manager đã xác nhận bàn giao; mọi thiết bị đã thu hồi hoặc có ngoại lệ được duyệt.</bpmn:documentation>
+      <bpmn:incoming>Flow_AND_Join_S02</bpmn:incoming>
+      <bpmn:incoming>Flow_H02_S02</bpmn:incoming>
+      <bpmn:outgoing>Flow_S02_G01</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="G01" name="Đủ điều kiện hoàn tất?">
+      <bpmn:incoming>Flow_S02_G01</bpmn:incoming>
+      <bpmn:outgoing>Flow_G01_H03</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G01_H02</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="H02" name="Phối hợp xử lý điều kiện còn thiếu">
+      <bpmn:documentation>ELAMS hiển thị điều kiện còn thiếu. Kiểm tra lại sau khi bộ phận liên quan cập nhật kết quả.</bpmn:documentation>
+      <bpmn:incoming>Flow_G01_H02</bpmn:incoming>
+      <bpmn:outgoing>Flow_H02_S02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="H03" name="Rà soát và xác nhận hoàn tất offboarding">
+      <bpmn:documentation>BR-OFF-08. HR xác nhận không thay thế được các kiểm tra của ELAMS (Q-24).</bpmn:documentation>
+      <bpmn:incoming>Flow_G01_H03</bpmn:incoming>
+      <bpmn:outgoing>Flow_H03_OFF_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="OFF_End" name="Offboarding hoàn tất">
+      <bpmn:incoming>Flow_H03_OFF_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Sub_DateChange" name="Thay đổi ngày nghỉ việc" triggeredByEvent="true">
+      <bpmn:laneSet id="Date_Lane_HR_Set">
+        <bpmn:lane id="Date_Lane_HR" name="HR">
+          <bpmn:flowNodeRef>C_Start</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C01</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="Date_Lane_ELAMS" name="ELAMS">
+          <bpmn:flowNodeRef>C02</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>C_End</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="C_Start" name="Nhận thông báo thay đổi ngày nghỉ việc" isInterrupting="false">
+        <bpmn:outgoing>Flow_C_Start_C01</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="C_Start_Def" messageRef="Message_LastDayChange" />
+      </bpmn:startEvent>
+      <bpmn:userTask id="C01" name="Cập nhật ngày nghỉ việc và lý do">
+        <bpmn:incoming>Flow_C_Start_C01</bpmn:incoming>
+        <bpmn:outgoing>Flow_C01_C02</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="C02" name="Tính lại hạn nhiệm vụ chưa hoàn thành và thời điểm thu hồi quyền">
+        <bpmn:documentation>GAP-OFF-06, BR-OFF-07. Nhiệm vụ đã hoàn thành không mở lại. Quyền đã thu hồi không được cấp lại vì đổi ngày. Cách tính hạn mới chưa chốt (Q-04).</bpmn:documentation>
+        <bpmn:incoming>Flow_C01_C02</bpmn:incoming>
+        <bpmn:outgoing>Flow_C02_C_End</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="C_End" name="Hạn và thời điểm thu hồi đã cập nhật">
+        <bpmn:incoming>Flow_C02_C_End</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_C_Start_C01" sourceRef="C_Start" targetRef="C01" />
+      <bpmn:sequenceFlow id="Flow_C01_C02" sourceRef="C01" targetRef="C02" />
+      <bpmn:sequenceFlow id="Flow_C02_C_End" sourceRef="C02" targetRef="C_End" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_OFF_Start_H01" sourceRef="OFF_Start" targetRef="H01" />
+    <bpmn:sequenceFlow id="Flow_H01_S01" sourceRef="H01" targetRef="S01" />
+    <bpmn:sequenceFlow id="Flow_S01_AND_Split" sourceRef="S01" targetRef="AND_Split" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_Sub_Revoke" sourceRef="AND_Split" targetRef="Sub_Revoke" />
+    <bpmn:sequenceFlow id="Flow_Sub_Revoke_AND_Join" sourceRef="Sub_Revoke" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_AND_Join_S02" sourceRef="AND_Join" targetRef="S02" />
+    <bpmn:sequenceFlow id="Flow_S02_G01" sourceRef="S02" targetRef="G01" />
+    <bpmn:sequenceFlow id="Flow_H03_OFF_End" sourceRef="H03" targetRef="OFF_End" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_Sub_Handover" sourceRef="AND_Split" targetRef="Sub_Handover" />
+    <bpmn:sequenceFlow id="Flow_AND_Split_Sub_Devices" sourceRef="AND_Split" targetRef="Sub_Devices" />
+    <bpmn:sequenceFlow id="Flow_Sub_Handover_AND_Join" sourceRef="Sub_Handover" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_Sub_Devices_AND_Join" sourceRef="Sub_Devices" targetRef="AND_Join" />
+    <bpmn:sequenceFlow id="Flow_G01_H03" name="Có" sourceRef="G01" targetRef="H03" />
+    <bpmn:sequenceFlow id="Flow_G01_H02" name="Không" sourceRef="G01" targetRef="H02" />
+    <bpmn:sequenceFlow id="Flow_H02_S02" sourceRef="H02" targetRef="S02" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Process_OffboardingToBe_Diagram">
+    <bpmndi:BPMNPlane id="Process_OffboardingToBe_Plane" bpmnElement="Collaboration_OffboardingToBe">
+      <bpmndi:BPMNShape id="Pool_ELAMS_di" bpmnElement="Pool_ELAMS" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1630" height="650" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_HR_di" bpmnElement="Lane_HR" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="1600" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ELAMS_di" bpmnElement="Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="180" y="340" width="1600" height="390" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="OFF_Start_di" bpmnElement="OFF_Start">
+        <dc:Bounds x="262" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H01_di" bpmnElement="H01">
+        <dc:Bounds x="380" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S01_di" bpmnElement="S01">
+        <dc:Bounds x="530" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Split_di" bpmnElement="AND_Split">
+        <dc:Bounds x="705" y="510" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="670" y="476" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Handover_di" bpmnElement="Sub_Handover" isExpanded="false">
+        <dc:Bounds x="830" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Revoke_di" bpmnElement="Sub_Revoke" isExpanded="false">
+        <dc:Bounds x="830" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Devices_di" bpmnElement="Sub_Devices" isExpanded="false">
+        <dc:Bounds x="830" y="625" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AND_Join_di" bpmnElement="AND_Join">
+        <dc:Bounds x="1005" y="510" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="970" y="476" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S02_di" bpmnElement="S02">
+        <dc:Bounds x="1130" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G01_di" bpmnElement="G01" isMarkerVisible="true">
+        <dc:Bounds x="1305" y="510" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1270" y="566" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H02_di" bpmnElement="H02">
+        <dc:Bounds x="1280" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H03_di" bpmnElement="H03">
+        <dc:Bounds x="1430" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="OFF_End_di" bpmnElement="OFF_End">
+        <dc:Bounds x="1612" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1575" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_DateChange_di" bpmnElement="Sub_DateChange" isExpanded="false">
+        <dc:Bounds x="380" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_OFF_Start_H01_di" bpmnElement="Flow_OFF_Start_H01">
+        <di:waypoint x="298" y="145" />
+        <di:waypoint x="380" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_H01_S01_di" bpmnElement="Flow_H01_S01">
+        <di:waypoint x="480" y="145" />
+        <di:waypoint x="505" y="145" />
+        <di:waypoint x="505" y="535" />
+        <di:waypoint x="530" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_S01_AND_Split_di" bpmnElement="Flow_S01_AND_Split">
+        <di:waypoint x="630" y="535" />
+        <di:waypoint x="705" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_Sub_Revoke_di" bpmnElement="Flow_AND_Split_Sub_Revoke">
+        <di:waypoint x="755" y="535" />
+        <di:waypoint x="830" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub_Revoke_AND_Join_di" bpmnElement="Flow_Sub_Revoke_AND_Join">
+        <di:waypoint x="930" y="535" />
+        <di:waypoint x="1005" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Join_S02_di" bpmnElement="Flow_AND_Join_S02">
+        <di:waypoint x="1055" y="535" />
+        <di:waypoint x="1130" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_S02_G01_di" bpmnElement="Flow_S02_G01">
+        <di:waypoint x="1230" y="535" />
+        <di:waypoint x="1305" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_H03_OFF_End_di" bpmnElement="Flow_H03_OFF_End">
+        <di:waypoint x="1530" y="145" />
+        <di:waypoint x="1612" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_Sub_Handover_di" bpmnElement="Flow_AND_Split_Sub_Handover">
+        <di:waypoint x="730" y="510" />
+        <di:waypoint x="730" y="405" />
+        <di:waypoint x="830" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AND_Split_Sub_Devices_di" bpmnElement="Flow_AND_Split_Sub_Devices">
+        <di:waypoint x="730" y="560" />
+        <di:waypoint x="730" y="665" />
+        <di:waypoint x="830" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub_Handover_AND_Join_di" bpmnElement="Flow_Sub_Handover_AND_Join">
+        <di:waypoint x="930" y="405" />
+        <di:waypoint x="1030" y="405" />
+        <di:waypoint x="1030" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub_Devices_AND_Join_di" bpmnElement="Flow_Sub_Devices_AND_Join">
+        <di:waypoint x="930" y="665" />
+        <di:waypoint x="1030" y="665" />
+        <di:waypoint x="1030" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G01_H03_di" bpmnElement="Flow_G01_H03">
+        <di:waypoint x="1355" y="535" />
+        <di:waypoint x="1480" y="535" />
+        <di:waypoint x="1480" y="185" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1363" y="515" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G01_H02_di" bpmnElement="Flow_G01_H02">
+        <di:waypoint x="1330" y="510" />
+        <di:waypoint x="1330" y="315" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1336" y="486" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_H02_S02_di" bpmnElement="Flow_H02_S02">
+        <di:waypoint x="1280" y="275" />
+        <di:waypoint x="1180" y="275" />
+        <di:waypoint x="1180" y="495" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Note_Gaps_di" bpmnElement="Note_Gaps">
+        <dc:Bounds x="555" y="235" width="420" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Scope_di" bpmnElement="Note_Scope">
+        <dc:Bounds x="1070" y="625" width="380" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Handover_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Handover_Plane" bpmnElement="Sub_Handover">
+      <bpmndi:BPMNShape id="Hand_Lane_Manager_di" bpmnElement="Hand_Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1000" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Hand_Lane_Employee_di" bpmnElement="Hand_Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="150" y="210" width="1000" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="W_Start_di" bpmnElement="W_Start">
+        <dc:Bounds x="232" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="W01_di" bpmnElement="W01">
+        <dc:Bounds x="350" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="W02_di" bpmnElement="W02">
+        <dc:Bounds x="500" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="W03_di" bpmnElement="W03">
+        <dc:Bounds x="650" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="WG01_di" bpmnElement="WG01" isMarkerVisible="true">
+        <dc:Bounds x="825" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="790" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="W_End_di" bpmnElement="W_End">
+        <dc:Bounds x="982" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="945" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_W_Start_W01_di" bpmnElement="Flow_W_Start_W01">
+        <di:waypoint x="268" y="145" />
+        <di:waypoint x="350" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_W01_W02_di" bpmnElement="Flow_W01_W02">
+        <di:waypoint x="450" y="145" />
+        <di:waypoint x="475" y="145" />
+        <di:waypoint x="475" y="275" />
+        <di:waypoint x="500" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_W02_W03_di" bpmnElement="Flow_W02_W03">
+        <di:waypoint x="600" y="275" />
+        <di:waypoint x="625" y="275" />
+        <di:waypoint x="625" y="145" />
+        <di:waypoint x="650" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_W03_WG01_di" bpmnElement="Flow_W03_WG01">
+        <di:waypoint x="750" y="145" />
+        <di:waypoint x="825" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WG01_W_End_di" bpmnElement="Flow_WG01_W_End">
+        <di:waypoint x="875" y="145" />
+        <di:waypoint x="982" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="883" y="125" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WG01_W02_di" bpmnElement="Flow_WG01_W02">
+        <di:waypoint x="850" y="170" />
+        <di:waypoint x="850" y="327" />
+        <di:waypoint x="550" y="327" />
+        <di:waypoint x="550" y="315" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="856" y="178" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Revoke_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Revoke_Plane" bpmnElement="Sub_Revoke">
+      <bpmndi:BPMNShape id="Rev_Lane_ELAMS_di" bpmnElement="Rev_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1150" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Rev_Lane_IT_di" bpmnElement="Rev_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="150" y="340" width="1150" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V_Start_di" bpmnElement="V_Start">
+        <dc:Bounds x="232" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VG_Wait_di" bpmnElement="VG_Wait">
+        <dc:Bounds x="375" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="340" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V_Timer_di" bpmnElement="V_Timer">
+        <dc:Bounds x="532" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V_Urgent_di" bpmnElement="V_Urgent">
+        <dc:Bounds x="532" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V01_di" bpmnElement="V01">
+        <dc:Bounds x="650" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V02_di" bpmnElement="V02">
+        <dc:Bounds x="800" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VG01_di" bpmnElement="VG01" isMarkerVisible="true">
+        <dc:Bounds x="975" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="86" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V03_di" bpmnElement="V03">
+        <dc:Bounds x="950" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V_End_di" bpmnElement="V_End">
+        <dc:Bounds x="1132" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1095" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_V_Start_VG_Wait_di" bpmnElement="Flow_V_Start_VG_Wait">
+        <di:waypoint x="268" y="145" />
+        <di:waypoint x="375" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_V01_V02_di" bpmnElement="Flow_V01_V02">
+        <di:waypoint x="750" y="405" />
+        <di:waypoint x="775" y="405" />
+        <di:waypoint x="775" y="145" />
+        <di:waypoint x="800" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_V02_VG01_di" bpmnElement="Flow_V02_VG01">
+        <di:waypoint x="900" y="145" />
+        <di:waypoint x="975" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VG_Wait_V_Timer_di" bpmnElement="Flow_VG_Wait_V_Timer">
+        <di:waypoint x="425" y="145" />
+        <di:waypoint x="532" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VG_Wait_V_Urgent_di" bpmnElement="Flow_VG_Wait_V_Urgent">
+        <di:waypoint x="400" y="170" />
+        <di:waypoint x="400" y="275" />
+        <di:waypoint x="532" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_V_Timer_V01_di" bpmnElement="Flow_V_Timer_V01">
+        <di:waypoint x="568" y="145" />
+        <di:waypoint x="720" y="145" />
+        <di:waypoint x="720" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_V_Urgent_V01_di" bpmnElement="Flow_V_Urgent_V01">
+        <di:waypoint x="568" y="275" />
+        <di:waypoint x="680" y="275" />
+        <di:waypoint x="680" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VG01_V_End_di" bpmnElement="Flow_VG01_V_End">
+        <di:waypoint x="1025" y="145" />
+        <di:waypoint x="1132" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1033" y="125" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VG01_V03_di" bpmnElement="Flow_VG01_V03">
+        <di:waypoint x="1000" y="170" />
+        <di:waypoint x="1000" y="365" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1006" y="178" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_V03_V02_di" bpmnElement="Flow_V03_V02">
+        <di:waypoint x="950" y="405" />
+        <di:waypoint x="850" y="405" />
+        <di:waypoint x="850" y="185" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_Devices_Diagram">
+    <bpmndi:BPMNPlane id="Sub_Devices_Plane" bpmnElement="Sub_Devices">
+      <bpmndi:BPMNShape id="Dev_Lane_Manager_di" bpmnElement="Dev_Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1300" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Dev_Lane_Employee_di" bpmnElement="Dev_Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="150" y="210" width="1300" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Dev_Lane_IT_di" bpmnElement="Dev_Lane_IT" isHorizontal="true">
+        <dc:Bounds x="150" y="340" width="1300" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_Start_di" bpmnElement="D_Start">
+        <dc:Bounds x="232" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D01_di" bpmnElement="D01">
+        <dc:Bounds x="350" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D02_di" bpmnElement="D02">
+        <dc:Bounds x="500" y="365" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DG01_di" bpmnElement="DG01" isMarkerVisible="true">
+        <dc:Bounds x="675" y="380" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="640" y="346" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_End_di" bpmnElement="D_End">
+        <dc:Bounds x="832" y="387" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="795" y="429" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D03_di" bpmnElement="D03">
+        <dc:Bounds x="650" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D04_di" bpmnElement="D04">
+        <dc:Bounds x="950" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DG02_di" bpmnElement="DG02" isMarkerVisible="true">
+        <dc:Bounds x="1125" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1090" y="176" width="120" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_EndExc_di" bpmnElement="D_EndExc">
+        <dc:Bounds x="1282" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1245" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_D_Start_D01_di" bpmnElement="Flow_D_Start_D01">
+        <di:waypoint x="268" y="275" />
+        <di:waypoint x="350" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_D02_DG01_di" bpmnElement="Flow_D02_DG01">
+        <di:waypoint x="600" y="405" />
+        <di:waypoint x="675" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_D01_D02_di" bpmnElement="Flow_D01_D02">
+        <di:waypoint x="400" y="315" />
+        <di:waypoint x="400" y="405" />
+        <di:waypoint x="500" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DG01_D_End_di" bpmnElement="Flow_DG01_D_End">
+        <di:waypoint x="725" y="405" />
+        <di:waypoint x="832" y="405" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="733" y="385" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DG01_D03_di" bpmnElement="Flow_DG01_D03">
+        <di:waypoint x="700" y="430" />
+        <di:waypoint x="700" y="495" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="706" y="438" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_D03_D04_di" bpmnElement="Flow_D03_D04">
+        <di:waypoint x="750" y="535" />
+        <di:waypoint x="1000" y="535" />
+        <di:waypoint x="1000" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_D04_DG02_di" bpmnElement="Flow_D04_DG02">
+        <di:waypoint x="1050" y="145" />
+        <di:waypoint x="1125" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DG02_D_EndExc_di" bpmnElement="Flow_DG02_D_EndExc">
+        <di:waypoint x="1175" y="145" />
+        <di:waypoint x="1282" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1183" y="125" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DG02_D01_di" bpmnElement="Flow_DG02_D01">
+        <di:waypoint x="1150" y="120" />
+        <di:waypoint x="1150" y="93" />
+        <di:waypoint x="400" y="93" />
+        <di:waypoint x="400" y="235" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1156" y="96" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Sub_DateChange_Diagram">
+    <bpmndi:BPMNPlane id="Sub_DateChange_Plane" bpmnElement="Sub_DateChange">
+      <bpmndi:BPMNShape id="Date_Lane_HR_di" bpmnElement="Date_Lane_HR" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="700" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Date_Lane_ELAMS_di" bpmnElement="Date_Lane_ELAMS" isHorizontal="true">
+        <dc:Bounds x="150" y="210" width="700" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_Start_di" bpmnElement="C_Start">
+        <dc:Bounds x="232" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="169" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C01_di" bpmnElement="C01">
+        <dc:Bounds x="350" y="105" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C02_di" bpmnElement="C02">
+        <dc:Bounds x="500" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_End_di" bpmnElement="C_End">
+        <dc:Bounds x="682" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="645" y="299" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_C_Start_C01_di" bpmnElement="Flow_C_Start_C01">
+        <di:waypoint x="268" y="145" />
+        <di:waypoint x="350" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C01_C02_di" bpmnElement="Flow_C01_C02">
+        <di:waypoint x="450" y="145" />
+        <di:waypoint x="475" y="145" />
+        <di:waypoint x="475" y="275" />
+        <di:waypoint x="500" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C02_C_End_di" bpmnElement="Flow_C02_C_End">
+        <di:waypoint x="600" y="275" />
+        <di:waypoint x="682" y="275" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
